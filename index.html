@@ -26,9 +26,10 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #000;
+      font-family: 'Segoe UI', 'Helvetica Neue', 'Georgia', serif, sans-serif;
+      background: #0a0a0a;
       color: #fff;
+      letter-spacing: 0.5px;
     }
 
     /* Full-screen art container */
@@ -89,13 +90,14 @@
       bottom: 0;
       left: 0;
       width: 100%;
-      background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
+      background: linear-gradient(to top, rgba(10,10,10,0.98), rgba(10,10,10,0.85), transparent);
       padding: 60px 20px 20px;
       text-align: center;
       transform: translateY(100%);
-      transition: transform 0.3s ease;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 50;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255,255,255,0.05);
     }
 
     .nav-footer.visible {
@@ -115,20 +117,23 @@
     .nav-btn {
       background: linear-gradient(135deg, #7209b7 0%, #f72585 100%);
       color: #fff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 12px 28px;
+      border-radius: 4px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 14px;
-      transition: all 0.3s ease;
+      font-size: 13px;
+      letter-spacing: 1px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       text-decoration: none;
       display: inline-block;
+      text-transform: uppercase;
     }
 
     .nav-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(247, 37, 133, 0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(247, 37, 133, 0.35);
+      border-color: rgba(255,255,255,0.2);
     }
 
     .nav-btn:active {
@@ -147,23 +152,28 @@
     /* Art info */
     .art-info {
       text-align: center;
-      padding: 20px;
-      background: rgba(0,0,0,0.5);
-      border-radius: 8px;
-      margin-bottom: 20px;
+      padding: 30px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 0;
+      margin-bottom: 30px;
+      border-top: 1px solid rgba(114, 9, 183, 0.3);
+      border-bottom: 1px solid rgba(114, 9, 183, 0.3);
     }
 
     .art-title {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 10px;
-      color: #00d4ff;
+      font-size: 22px;
+      font-weight: 300;
+      margin-bottom: 12px;
+      color: #fff;
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
 
     .art-details {
-      font-size: 12px;
-      color: rgba(255,255,255,0.7);
-      line-height: 1.6;
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.8;
+      letter-spacing: 1px;
     }
 
     .art-keywords {
@@ -265,7 +275,11 @@
     <span class="scroll-arrow">↓</span>
   </div>
 
-  <div class="art-counter" id="artCounter"></div>
+  <div class="art-counter" id="artCounter">
+    <span id="artCounterText"></span>
+    <span style="opacity: 0.6; margin: 0 8px;">|</span>
+    <button onclick="showPhilosophy()" style="background: none; border: none; color: inherit; cursor: pointer; font-size: inherit; opacity: 0.8; transition: opacity 0.3s;">About</button>
+  </div>
 
   <div class="nav-footer" id="navFooter">
     <div class="art-info">
@@ -278,6 +292,23 @@
       <button class="nav-btn home" onclick="goToGallery()">Gallery</button>
       <button class="nav-btn" id="prevBtn" onclick="previousArt()">← Previous</button>
       <button class="nav-btn" id="nextBtn" onclick="nextArt()">Next →</button>
+    </div>
+  </div>
+
+  <!-- Philosophy Modal -->
+  <div id="philosophyModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; overflow-y: auto; backdrop-filter: blur(10px);">
+    <div style="max-width: 800px; margin: 0 auto; padding: 60px 40px; color: #fff;">
+      <button onclick="hidePhilosophy()" style="position: absolute; top: 20px; right: 30px; background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; opacity: 0.7; transition: opacity 0.3s;">×</button>
+      
+      <h2 style="font-size: 32px; margin-bottom: 30px; font-weight: 300; letter-spacing: 2px; text-transform: uppercase;">The Philosophy</h2>
+      
+      <article id="philosophyContent" style="font-size: 15px; line-height: 1.9; color: rgba(255,255,255,0.85);">
+        <!-- Content loaded dynamically -->
+      </article>
+      
+      <div style="margin-top: 60px; padding-top: 30px; border-top: 1px solid rgba(114,9,183,0.3); font-size: 12px; color: rgba(255,255,255,0.5);">
+        <p>Visit the <a href="gallery.html" style="color: #f72585; text-decoration: none; border-bottom: 1px solid rgba(247,37,133,0.5);">Gallery</a> to explore all artworks</p>
+      </div>
     </div>
   </div>
 
@@ -362,8 +393,43 @@
     function updateCounter() {
       const total = artworks.length;
       const current = currentIndex + 1;
-      document.getElementById('artCounter').textContent = `${current} / ${total}`;
+      document.getElementById('artCounterText').textContent = `${current} / ${total}`;
     }
+    
+    function showPhilosophy() {
+      document.getElementById('philosophyModal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function hidePhilosophy() {
+      document.getElementById('philosophyModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    
+    // Load philosophy content
+    async function loadPhilosophy() {
+      try {
+        const response = await fetch('PHILOSOPHY.md');
+        if (response.ok) {
+          const markdown = await response.text();
+          // Convert markdown to HTML (basic)
+          let html = markdown
+            .replace(/^# (.*?)$/gm, '<h3 style="font-size: 18px; margin-top: 30px; margin-bottom: 15px; color: #00d4ff;">$1</h3>')
+            .replace(/^## (.*?)$/gm, '<h4 style="font-size: 16px; margin-top: 20px; margin-bottom: 10px;">$1</h4>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/^/gm, '<p>');
+          document.getElementById('philosophyContent').innerHTML = html;
+        }
+      } catch (error) {
+        document.getElementById('philosophyContent').innerHTML = '<p>Philosophy document not yet available. Explore the artworks to understand our mission.</p>';
+      }
+    }
+    
+    // Close modal on outside click
+    document.getElementById('philosophyModal').addEventListener('click', function(e) {
+      if (e.target === this) hidePhilosophy();
+    });
 
     function updateNavButtons() {
       document.getElementById('prevBtn').disabled = currentIndex <= 0;
@@ -413,7 +479,8 @@
     }
 
     function goToGallery() {
-      window.location.href = 'gallery.html';
+      const baseUrl = window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/');
+      window.location.href = baseUrl + '/gallery.html';
     }
 
     function showError(message) {
@@ -455,6 +522,7 @@
 
     // Initialize
     loadArtworks();
+    loadPhilosophy();
   </script>
 </body>
 </html>
