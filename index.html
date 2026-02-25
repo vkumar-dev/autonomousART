@@ -254,10 +254,13 @@
       z-index: 100;
       flex-direction: column;
       overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .catalog-list-view.active {
       display: flex;
+      opacity: 1;
     }
 
     .catalog-list-container {
@@ -274,19 +277,29 @@
       padding: 20px 0;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       font-size: 18px;
       color: rgba(255, 255, 255, 0.6);
       display: flex;
       justify-content: space-between;
       align-items: center;
       position: relative;
+      transform: translateX(0);
+      opacity: 0.7;
+    }
+
+    .catalog-list-item:hover {
+      opacity: 0.9;
+      transform: translateX(10px);
     }
 
     .catalog-list-item.selected {
       background: rgba(247, 37, 133, 0.1);
       color: #fff;
       padding-left: 30px;
+      opacity: 1;
+      transform: translateX(20px) scale(1.02);
+      box-shadow: inset 200px 0 0 rgba(247, 37, 133, 0.05);
     }
 
     .catalog-list-item.selected::before {
@@ -295,6 +308,18 @@
       left: 0;
       color: #f72585;
       font-weight: bold;
+      animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
     }
 
     .catalog-list-meta {
@@ -315,12 +340,14 @@
       padding: 60px 40px 40px;
       overflow-y: auto;
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transform: translateY(30px);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .description-modal.active {
       display: block;
       opacity: 1;
+      transform: translateY(0);
     }
 
     .description-content {
@@ -374,12 +401,14 @@
       padding: 40px;
       overflow-y: auto;
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transform: translateY(30px);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .code-modal.active {
       display: block;
       opacity: 1;
+      transform: translateY(0);
     }
 
     .code-header {
@@ -412,6 +441,128 @@
       margin-top: 30px;
       font-size: 12px;
       color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Keyboard Map Overlay */
+    .keyboard-map-toggle {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      width: 50px;
+      height: 50px;
+      background: rgba(247, 37, 133, 0.2);
+      border: 2px solid rgba(247, 37, 133, 0.5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 90;
+      transition: all 0.3s ease;
+      font-size: 24px;
+      color: rgba(247, 37, 133, 0.8);
+    }
+
+    .keyboard-map-toggle:hover {
+      background: rgba(247, 37, 133, 0.3);
+      border-color: rgba(247, 37, 133, 0.8);
+      transform: scale(1.1);
+    }
+
+    .keyboard-map-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 95;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .keyboard-map-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .keyboard-map-grid {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      padding: 40px;
+      max-width: 900px;
+      max-height: 80vh;
+      overflow-y: auto;
+      background: rgba(5, 5, 5, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+    }
+
+    .keyboard-map-item {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      background: #0a0a0a;
+    }
+
+    .keyboard-map-item:hover {
+      border-color: rgba(247, 37, 133, 0.5);
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(247, 37, 133, 0.3);
+    }
+
+    .keyboard-map-item.selected {
+      border-color: #f72585;
+      box-shadow: 0 0 30px rgba(247, 37, 133, 0.6), inset 0 0 20px rgba(247, 37, 133, 0.1);
+    }
+
+    .keyboard-map-thumbnail {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.6;
+    }
+
+    .keyboard-map-item:hover .keyboard-map-thumbnail {
+      opacity: 0.8;
+    }
+
+    .keyboard-map-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 6px;
+      font-size: 10px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .keyboard-map-hint {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+      text-align: center;
+      width: 100%;
     }
 
     @keyframes pulse {
@@ -593,6 +744,17 @@
     <div class="modal-close-hint">Press ← Left to go back to description | Press ← Left again to close</div>
   </div>
 
+  <!-- Keyboard Map Toggle Button -->
+  <div class="keyboard-map-toggle" id="keyboardMapToggle" onclick="toggleKeyboardMap()">🗺️</div>
+
+  <!-- Keyboard Map Overlay -->
+  <div class="keyboard-map-overlay" id="keyboardMapOverlay">
+    <div class="keyboard-map-hint">Press ESC or click background to close</div>
+    <div class="keyboard-map-grid" id="keyboardMapGrid">
+      <!-- Thumbnails added dynamically -->
+    </div>
+  </div>
+
   <script>
     const CATALOG_CONTAINER = document.getElementById('catalogContainer');
     const SCROLL_INDICATOR = document.getElementById('scrollIndicator');
@@ -742,6 +904,92 @@
       currentView = 'description';
     }
 
+    // Keyboard map functions
+    function toggleKeyboardMap() {
+      const overlay = document.getElementById('keyboardMapOverlay');
+      overlay.classList.toggle('active');
+    }
+
+    function buildKeyboardMap() {
+      const grid = document.getElementById('keyboardMapGrid');
+      grid.innerHTML = '';
+
+      artworks.forEach((filename, index) => {
+        const item = document.createElement('div');
+        item.className = 'keyboard-map-item';
+        if (index === selectedIndex) item.classList.add('selected');
+        item.dataset.index = index;
+        item.onclick = () => {
+          selectedIndex = index;
+          updateKeyboardMapSelection();
+          hideCatalogList();
+          document.getElementById('keyboardMapOverlay').classList.remove('active');
+          scrollToArtwork(selectedIndex);
+        };
+
+        const metadata = artworkMetadata[index];
+        const canvas = document.createElement('canvas');
+        canvas.width = 120;
+        canvas.height = 120;
+        const ctx = canvas.getContext('2d');
+        
+        // Generate a simple gradient preview based on artwork index
+        const hue = (index * 17) % 360;
+        const gradient = ctx.createLinearGradient(0, 0, 120, 120);
+        gradient.addColorStop(0, `hsl(${hue}, 100%, 30%)`);
+        gradient.addColorStop(1, `hsl(${hue + 60}, 100%, 50%)`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 120, 120);
+
+        // Add some pattern
+        ctx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.3)`;
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.arc(60, 60, 20 + i * 15, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        const img = document.createElement('img');
+        img.src = canvas.toDataURL();
+        img.className = 'keyboard-map-thumbnail';
+        item.appendChild(img);
+
+        const label = document.createElement('div');
+        label.className = 'keyboard-map-label';
+        label.textContent = metadata.title;
+        item.appendChild(label);
+
+        grid.appendChild(item);
+      });
+    }
+
+    function updateKeyboardMapSelection() {
+      const items = document.querySelectorAll('.keyboard-map-item');
+      items.forEach((item, idx) => {
+        if (idx === selectedIndex) {
+          item.classList.add('selected');
+          item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+          item.classList.remove('selected');
+        }
+      });
+    }
+
+    // Close keyboard map with ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.getElementById('keyboardMapOverlay').classList.remove('active');
+      }
+    });
+
+    // Close keyboard map when clicking background
+    document.getElementById('keyboardMapOverlay').addEventListener('click', (e) => {
+      if (e.target.id === 'keyboardMapOverlay') {
+        document.getElementById('keyboardMapOverlay').classList.remove('active');
+      }
+    });
+
     // Keyboard event handler
     document.addEventListener('keydown', (e) => {
       if (currentView === 'scroll') {
@@ -814,6 +1062,7 @@
 
         renderSections();
         setupObserver();
+        buildKeyboardMap();
 
       } catch (err) {
         document.getElementById('setupMessage').innerHTML = `
