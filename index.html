@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@300;400;500&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Poppins:wght@300;400;500&display=swap"
     rel="stylesheet">
 
   <style>
@@ -25,7 +25,9 @@
       height: 100%;
       background: #050505;
       color: #fff;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
       overflow: hidden;
       /* Prevent body scroll, handled by container */
     }
@@ -457,10 +459,13 @@
     }
 
     .description-text {
+      font-family: 'Poppins', sans-serif;
       font-size: 16px;
-      line-height: 1.8;
-      color: rgba(255, 255, 255, 0.8);
+      font-weight: 300;
+      line-height: 1.85;
+      color: rgba(255, 255, 255, 0.85);
       margin-bottom: 30px;
+      letter-spacing: 0.2px;
     }
 
     .description-hint {
@@ -573,11 +578,13 @@
     .code-header {
       margin-bottom: 30px;
       font-family: 'Outfit', sans-serif;
-      font-size: 24px;
-      color: rgba(255, 255, 255, 0.9);
+      font-size: 22px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.95);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      letter-spacing: 1px;
     }
 
     .code-container {
@@ -591,12 +598,14 @@
 
     .code-container pre {
       margin: 0;
-      font-family: 'Courier New', monospace;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 13px;
-      line-height: 1.6;
-      color: #00ff00;
+      font-weight: 400;
+      line-height: 1.7;
+      color: #a0ff00;
       white-space: pre-wrap;
       word-wrap: break-word;
+      letter-spacing: 0.3px;
     }
 
     .modal-close-hint {
