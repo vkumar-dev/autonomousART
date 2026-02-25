@@ -263,21 +263,56 @@
       opacity: 1;
     }
 
+    .catalog-list-header {
+      padding: 40px 60px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      flex-shrink: 0;
+    }
+
+    .catalog-list-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 28px;
+      font-weight: 300;
+      color: #fff;
+      letter-spacing: 2px;
+    }
+
     .catalog-list-container {
       flex: 1;
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 40px 60px;
+      padding: 0 60px;
       display: flex;
       flex-direction: column;
       gap: 0;
+      will-change: transform;
+    }
+
+    .catalog-list-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .catalog-list-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .catalog-list-container::-webkit-scrollbar-thumb {
+      background: rgba(247, 37, 133, 0.4);
+      border-radius: 3px;
+    }
+
+    .catalog-list-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(247, 37, 133, 0.6);
     }
 
     .catalog-list-item {
       padding: 20px 0;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       cursor: pointer;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       font-size: 18px;
       color: rgba(255, 255, 255, 0.6);
       display: flex;
@@ -286,6 +321,7 @@
       position: relative;
       transform: translateX(0);
       opacity: 0.7;
+      will-change: transform, opacity, background-color;
     }
 
     .catalog-list-item:hover {
@@ -308,7 +344,7 @@
       left: 0;
       color: #f72585;
       font-weight: bold;
-      animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     @keyframes slideIn {
@@ -338,7 +374,7 @@
       z-index: 101;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .description-modal.active {
@@ -363,6 +399,18 @@
       position: relative;
       max-height: 70vh;
       overflow-y: auto;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     .description-title {
@@ -409,7 +457,7 @@
       z-index: 102;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .code-modal.active {
@@ -433,6 +481,18 @@
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
       max-height: 80vh;
       overflow-y: auto;
+      animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     .code-header {
@@ -558,8 +618,8 @@
     .keyboard-map-thumbnail {
       width: 100%;
       height: 100%;
-      object-fit: cover;
       opacity: 0.6;
+      transition: opacity 0.3s ease;
     }
 
     .keyboard-map-item:hover .keyboard-map-thumbnail {
@@ -782,6 +842,10 @@
 
   <!-- Catalog List View -->
   <div class="catalog-list-view" id="catalogListView">
+    <div class="catalog-list-header">
+      <div class="catalog-list-title">A_ART Catalog</div>
+      <button class="glass-btn about-btn" onclick="togglePhilosophy()">Philosophy</button>
+    </div>
     <div class="catalog-list-container" id="catalogListContainer">
       <!-- Items added dynamically -->
     </div>
@@ -1046,32 +1110,13 @@
         };
 
         const metadata = artworkMetadata[index];
-        const canvas = document.createElement('canvas');
-        canvas.width = 120;
-        canvas.height = 120;
-        const ctx = canvas.getContext('2d');
-        
-        // Generate a simple gradient preview based on artwork index
         const hue = (index * 17) % 360;
-        const gradient = ctx.createLinearGradient(0, 0, 120, 120);
-        gradient.addColorStop(0, `hsl(${hue}, 100%, 30%)`);
-        gradient.addColorStop(1, `hsl(${hue + 60}, 100%, 50%)`);
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 120, 120);
-
-        // Add some pattern
-        ctx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.3)`;
-        ctx.lineWidth = 2;
-        for (let i = 0; i < 3; i++) {
-          ctx.beginPath();
-          ctx.arc(60, 60, 20 + i * 15, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-
-        const img = document.createElement('img');
-        img.src = canvas.toDataURL();
-        img.className = 'keyboard-map-thumbnail';
-        item.appendChild(img);
+        
+        // Use CSS gradient instead of canvas for better performance
+        const thumbnail = document.createElement('div');
+        thumbnail.className = 'keyboard-map-thumbnail';
+        thumbnail.style.background = `linear-gradient(135deg, hsl(${hue}, 100%, 30%), hsl(${hue + 60}, 100%, 50%))`;
+        item.appendChild(thumbnail);
 
         const label = document.createElement('div');
         label.className = 'keyboard-map-label';
@@ -1229,28 +1274,6 @@
           <div class="loading-pulse"></div>
           <!-- iframe injected lazily -->
           <div class="iframe-container" style="position:absolute; width:100%; height:100%; top:0; left:0; z-index:1;"></div>
-          
-          <div class="ui-overlay">
-            <div class="top-bar">
-              <div class="logo">A_ART.</div>
-              <div class="top-buttons">
-                <button class="glass-btn about-btn" onclick="togglePhilosophy()">Philosophy</button>
-              </div>
-            </div>
-            
-            <div class="info-card">
-              <h2 class="art-title">${title}</h2>
-              <div class="art-meta">
-                <span>${index + 1} / ${artworks.length}</span>
-                <span>•</span>
-                <span>${dateStr}</span>
-              </div>
-              <div class="art-keywords">
-                ${keywords.map(k => `<span class="keyword">${k}</span>`).join('')}
-                <span class="keyword" style="border-color: rgba(0, 212, 255, 0.4); color: #00d4ff;">Canvas</span>
-              </div>
-            </div>
-          </div>
         `;
 
         CATALOG_CONTAINER.appendChild(section);
