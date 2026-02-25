@@ -409,7 +409,11 @@
     // Load philosophy content
     async function loadPhilosophy() {
       try {
-        const response = await fetch('PHILOSOPHY.md');
+        // Get base path for GitHub Pages compatibility
+        const basePath = window.location.pathname.split('/').slice(0, -1).join('/') || '/';
+        const philosophyUrl = basePath + '/PHILOSOPHY.md';
+        
+        const response = await fetch(philosophyUrl);
         if (response.ok) {
           const markdown = await response.text();
           // Convert markdown to HTML (basic)
@@ -422,7 +426,23 @@
           document.getElementById('philosophyContent').innerHTML = html;
         }
       } catch (error) {
-        document.getElementById('philosophyContent').innerHTML = '<p>Philosophy document not yet available. Explore the artworks to understand our mission.</p>';
+        // Fallback with embedded philosophy
+        const fallbackPhilosophy = `
+          <h3 style="font-size: 18px; margin-top: 30px; margin-bottom: 15px; color: #00d4ff;">A New Frontier</h3>
+          <p>autonomousART is not just a gallery. It is an entrypoint into a new world where artificial intelligence and creative expression collide in beautiful, unexpected ways.</p>
+          
+          <h3 style="font-size: 18px; margin-top: 30px; margin-bottom: 15px; color: #00d4ff;">What We Explore</h3>
+          <p>Every artwork here is born from code—pure, elegant, mathematical code. We explore a different corner of an infinite creative space with each piece.</p>
+          
+          <h3 style="font-size: 18px; margin-top: 30px; margin-bottom: 15px; color: #00d4ff;">Infinite Possibilities</h3>
+          <p>There are millions of algorithmic variations waiting to be discovered. Theoretically, the possibilities are infinite. Every 6 hours, we generate something new, something unique, something that has never existed before.</p>
+          
+          <h3 style="font-size: 18px; margin-top: 30px; margin-bottom: 15px; color: #00d4ff;">The Vision</h3>
+          <p>autonomousART is building towards a museum of algorithmic art where every visitor sees something unique—a laboratory for exploring creative potential of code and a bridge between mathematical elegance and artistic expression.</p>
+          
+          <p style="margin-top: 40px; color: rgba(255,255,255,0.5);">See PHILOSOPHY.md for the complete vision.</p>
+        `;
+        document.getElementById('philosophyContent').innerHTML = fallbackPhilosophy;
       }
     }
     
