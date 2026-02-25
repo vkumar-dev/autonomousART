@@ -599,13 +599,32 @@
     .code-container pre {
       margin: 0;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 400;
-      line-height: 1.7;
+      line-height: 1.8;
       color: #a0ff00;
-      white-space: pre-wrap;
-      word-wrap: break-word;
+      white-space: pre;
+      overflow-x: auto;
       letter-spacing: 0.3px;
+      tab-size: 2;
+      -moz-tab-size: 2;
+    }
+
+    .code-container::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .code-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .code-container::-webkit-scrollbar-thumb {
+      background: rgba(160, 255, 0, 0.3);
+      border-radius: 3px;
+    }
+
+    .code-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(160, 255, 0, 0.5);
     }
 
     .modal-close-hint {
@@ -1034,17 +1053,58 @@
         const scriptMatch = html.match(/<script[^>]*>([\s\S]*?)<\/script>/);
         if (scriptMatch) {
           let code = scriptMatch[1].trim();
-          // Pretty print by adding indentation
-          code = code.replace(/;/g, ';\n')
-                     .replace(/{/g, '{\n  ')
-                     .replace(/}/g, '\n}')
-                     .replace(/\n\s*\n/g, '\n');
+          
+          // Beautiful code formatting
+          code = beautifyCode(code);
           return code;
         }
         return 'No code found';
       } catch (e) {
         return 'Error loading code';
       }
+    }
+
+    // Beautify and format code with proper indentation
+    function beautifyCode(code) {
+      let indentLevel = 0;
+      let result = [];
+      let inString = false;
+      let stringChar = '';
+      let inComment = false;
+      let inMultiComment = false;
+      
+      // Split and process line by line first
+      const lines = code.split('\n');
+      
+      for (let line of lines) {
+        line = line.trim();
+        if (!line) continue;
+        
+        // Check for closing braces at start
+        if (line.startsWith('}') || line.startsWith(')')) {
+          indentLevel = Math.max(0, indentLevel - 1);
+        }
+        
+        // Add indented line
+        result.push('  '.repeat(indentLevel) + line);
+        
+        // Update indent based on opening braces
+        const openCount = (line.match(/{/g) || []).length;
+        const closeCount = (line.match(/}/g) || []).length;
+        indentLevel += openCount - closeCount;
+      }
+      
+      // Join and add more formatting
+      let formatted = result.join('\n');
+      
+      // Format function calls and statements
+      formatted = formatted
+        .replace(/\)\s*{/g, ') {\n')
+        .replace(/;\s*(?!$)/gm, ';\n')
+        .replace(/,\s*([^\n])/g, ',\n  $1')
+        .replace(/\n\n+/g, '\n'); // Remove multiple blank lines
+      
+      return formatted;
     }
 
     // View management functions
