@@ -408,28 +408,33 @@
 
     .description-content {
       position: fixed;
-      left: 0;
-      top: 0;
-      width: 40%;
-      height: 100%;
-      background: rgba(5, 5, 5, 0.8);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(0.95);
+      opacity: 0;
+      max-width: 700px;
+      width: 90%;
+      max-height: 80vh;
+      background: rgba(5, 5, 5, 0.65);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 60px 40px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 60px 50px;
       overflow-y: auto;
       z-index: 101;
       pointer-events: auto;
-      transform: translateX(-100%);
-      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .description-modal.active .description-content {
-      transform: translateX(0);
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
     }
 
     .description-modal.hidden-by-code .description-content {
-      transform: translateX(-100%);
+      transform: translate(-50%, -50%) scale(0.95) translateX(-60px);
+      opacity: 0;
       pointer-events: none;
     }
 
@@ -487,24 +492,34 @@
 
     .code-content {
       position: fixed;
-      right: 0;
-      top: 0;
-      width: 50%;
-      height: 100%;
-      background: rgba(5, 5, 5, 0.85);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(0.95);
+      opacity: 0;
+      max-width: 800px;
+      width: 90%;
+      max-height: 80vh;
+      background: rgba(5, 5, 5, 0.70);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 60px 40px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 60px 50px;
       overflow-y: auto;
       z-index: 102;
       pointer-events: auto;
-      transform: translateX(100%);
-      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .code-modal.active .code-content {
-      transform: translateX(0);
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+
+    .code-modal.hidden-by-code .code-content {
+      transform: translate(-50%, -50%) scale(0.95) translateX(60px);
+      opacity: 0;
+      pointer-events: none;
     }
 
     .code-header {
@@ -1068,9 +1083,13 @@
       const codeModal = document.getElementById('codeModal');
       const descModal = document.getElementById('descriptionModal');
       
-      codeModal.classList.add('active');
-      // Hide description panel by sliding it left
+      // Hide description, show code with scale/fade animation
       descModal.classList.add('hidden-by-code');
+      codeModal.classList.add('active');
+      codeModal.classList.add('hidden-by-code'); // For initial state
+      setTimeout(() => {
+        codeModal.classList.remove('hidden-by-code');
+      }, 10);
       
       // Reset art visibility when showing code
       if (artHidden) {
@@ -1084,10 +1103,14 @@
       const codeModal = document.getElementById('codeModal');
       const descModal = document.getElementById('descriptionModal');
       
-      codeModal.classList.remove('active');
-      // Show description panel again by sliding it in from left
+      // Hide code, show description
+      codeModal.classList.add('hidden-by-code');
       descModal.classList.remove('hidden-by-code');
-      currentView = 'description';
+      
+      setTimeout(() => {
+        codeModal.classList.remove('active');
+        currentView = 'description';
+      }, 600);
     }
 
     // Keyboard map functions
