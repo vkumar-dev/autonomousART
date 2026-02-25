@@ -339,7 +339,7 @@
       padding: 20px 0;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       cursor: pointer;
-      transition: opacity 0.25s ease, transform 0.25s ease;
+      transition: opacity 0.25s ease, transform 0.25s ease, background 0.25s ease;
       font-size: 18px;
       color: rgba(255, 255, 255, 0.6);
       display: flex;
@@ -347,12 +347,19 @@
       align-items: center;
       position: relative;
       opacity: 0.7;
-      will-change: opacity, transform;
+      will-change: opacity, transform, background;
+      user-select: none;
     }
 
     .catalog-list-item:hover {
-      opacity: 0.9;
+      opacity: 1;
       transform: translateX(10px);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .catalog-list-item:active {
+      opacity: 0.95;
+      transform: translateX(8px);
     }
 
     .catalog-list-item.selected {
@@ -1445,6 +1452,11 @@
           <span>${title}</span>
           <span class="catalog-list-meta">${dateStr}</span>
         `;
+        listItem.addEventListener('click', () => {
+          selectedIndex = index;
+          hideCatalogList();
+          showDescription();
+        });
         catalogListContainer.appendChild(listItem);
 
         // Build HTML
