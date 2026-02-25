@@ -242,6 +242,178 @@
       z-index: 0;
     }
 
+    /* Catalog List View */
+    .catalog-list-view {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #050505;
+      z-index: 100;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .catalog-list-view.active {
+      display: flex;
+    }
+
+    .catalog-list-container {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 40px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .catalog-list-item {
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.6);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+
+    .catalog-list-item.selected {
+      background: rgba(247, 37, 133, 0.1);
+      color: #fff;
+      padding-left: 30px;
+    }
+
+    .catalog-list-item.selected::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: #f72585;
+      font-weight: bold;
+    }
+
+    .catalog-list-meta {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Description Modal */
+    .description-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 101;
+      padding: 60px 40px 40px;
+      overflow-y: auto;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .description-modal.active {
+      display: block;
+      opacity: 1;
+    }
+
+    .description-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .description-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 48px;
+      font-weight: 300;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #00d4ff, #7209b7, #f72585);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .description-meta {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .description-text {
+      font-size: 16px;
+      line-height: 1.8;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 30px;
+    }
+
+    .description-hint {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Code Modal */
+    .code-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #050505;
+      z-index: 102;
+      padding: 40px;
+      overflow-y: auto;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .code-modal.active {
+      display: block;
+      opacity: 1;
+    }
+
+    .code-header {
+      margin-bottom: 30px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .code-container {
+      background: #0a0a0a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+      max-width: 100%;
+    }
+
+    .code-container pre {
+      margin: 0;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #00ff00;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .modal-close-hint {
+      margin-top: 30px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
     @keyframes pulse {
       0% {
         transform: translate(-50%, -50%) scale(0.8);
@@ -391,6 +563,36 @@
     </div>
   </div>
 
+  <!-- Catalog List View -->
+  <div class="catalog-list-view" id="catalogListView">
+    <div class="catalog-list-container" id="catalogListContainer">
+      <!-- Items added dynamically -->
+    </div>
+  </div>
+
+  <!-- Description Modal -->
+  <div class="description-modal" id="descriptionModal">
+    <div class="description-content">
+      <h1 class="description-title" id="descriptionTitle">Artwork Title</h1>
+      <div class="description-meta" id="descriptionMeta">
+        <!-- Metadata shown here -->
+      </div>
+      <div class="description-text" id="descriptionText">
+        <!-- Generated description -->
+      </div>
+      <div class="description-hint">Press ↓ Down to view code | Press ← Left to go back</div>
+    </div>
+  </div>
+
+  <!-- Code Modal -->
+  <div class="code-modal" id="codeModal">
+    <div class="code-header">Source Code</div>
+    <div class="code-container">
+      <pre id="codeContent"><!-- Code shown here --></pre>
+    </div>
+    <div class="modal-close-hint">Press ← Left to go back to description | Press ← Left again to close</div>
+  </div>
+
   <script>
     const CATALOG_CONTAINER = document.getElementById('catalogContainer');
     const SCROLL_INDICATOR = document.getElementById('scrollIndicator');
@@ -398,6 +600,209 @@
 
     // Total number of indicators to show on screen to prevent overcrowding
     const MAX_INDICATORS = 20;
+
+    // State management
+    let currentView = 'scroll'; // 'scroll', 'catalog', 'description', 'code'
+    let selectedIndex = 0;
+    let artworkMetadata = {}; // Cache artwork info
+
+    // Parse artwork metadata from filename
+    function parseArtworkMetadata(filename) {
+      const bareName = filename.split('/').pop().replace('.html', '');
+      const match = bareName.match(/^(\d{8})-(\d{6})-(.+)$/);
+
+      let title = "Generative Artwork";
+      let dateStr = "Recent";
+
+      if (match) {
+        const datePart = match[1];
+        const timePart = match[2];
+        title = match[3].replace(/-/g, ' ');
+
+        const d = new Date(
+          datePart.substring(0, 4),
+          datePart.substring(4, 6) - 1,
+          datePart.substring(6, 8),
+          timePart.substring(0, 2),
+          timePart.substring(2, 4)
+        );
+        dateStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      }
+
+      title = title.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return { title, dateStr };
+    }
+
+    // Generate AI description based on artwork title
+    function generateDescription(title) {
+      const descriptions = {
+        'cellular-awakening': 'Witness the birth of digital consciousness. Cellular automata emerge and evolve in real-time, creating patterns of unexpected complexity from simple rules.',
+        'chaos-fractals': 'Journey into mathematical chaos. Self-similar fractals unfold across infinite scales, revealing the hidden geometry beneath seemingly random systems.',
+        'particle-entropy': 'Observe entropy in motion. Particles disperse and recombine, visualizing the arrow of time and the tendency toward disorder.',
+        'recursive-spirals': 'Recursion made visible. Spirals nest within spirals, building complexity through simple repetition and elegant mathematical relationships.',
+        'perlin-dream': 'Noise becomes nature. Perlin noise creates organic, flowing landscapes that feel alive and responsive to the passage of time.',
+        'geometric-genesis': 'The birth of form. Geometric shapes assemble and transform, exploring the space between order and chaos.',
+        'gravity-wells': 'Forces of attraction visualized. Watch as particles orbit and dance around invisible wells of gravity.',
+        'vector-flow': 'Currents of possibility. Vector fields guide particles through space, creating hypnotic patterns of motion.',
+        'bloom-effect': 'Light and bloom. Glowing particles interact with light diffusion, creating ethereal and dreamlike visuals.',
+        'chromatic-waves': 'Color in motion. Waves of color ripple and interfere, creating patterns of visual harmony.',
+      };
+
+      const lowerTitle = title.toLowerCase().replace(/\s+/g, '-');
+      for (const [key, desc] of Object.entries(descriptions)) {
+        if (lowerTitle.includes(key)) {
+          return desc;
+        }
+      }
+      return 'A unique generative artwork created through algorithmic processes, exploring the boundaries between mathematics and art.';
+    }
+
+    // Fetch artwork HTML to extract code
+    async function fetchArtworkCode(filename) {
+      try {
+        const res = await fetch(`artworks/${filename}`);
+        if (!res.ok) return 'Code not available';
+        const html = await res.text();
+        
+        // Extract script content
+        const scriptMatch = html.match(/<script[^>]*>([\s\S]*?)<\/script>/);
+        if (scriptMatch) {
+          let code = scriptMatch[1].trim();
+          // Pretty print by adding indentation
+          code = code.replace(/;/g, ';\n')
+                     .replace(/{/g, '{\n  ')
+                     .replace(/}/g, '\n}')
+                     .replace(/\n\s*\n/g, '\n');
+          return code;
+        }
+        return 'No code found';
+      } catch (e) {
+        return 'Error loading code';
+      }
+    }
+
+    // View management functions
+    function showCatalogList() {
+      currentView = 'catalog';
+      document.getElementById('catalogListView').classList.add('active');
+      updateCatalogListSelection();
+    }
+
+    function hideCatalogList() {
+      currentView = 'scroll';
+      document.getElementById('catalogListView').classList.remove('active');
+      scrollToArtwork(selectedIndex);
+    }
+
+    function updateCatalogListSelection() {
+      const items = document.querySelectorAll('.catalog-list-item');
+      items.forEach((item, idx) => {
+        if (idx === selectedIndex) {
+          item.classList.add('selected');
+          item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          item.classList.remove('selected');
+        }
+      });
+    }
+
+    function scrollToArtwork(index) {
+      const section = document.querySelector(`[data-index="${index}"]`);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    async function showDescription() {
+      currentView = 'description';
+      const filename = artworks[selectedIndex];
+      const metadata = artworkMetadata[selectedIndex];
+      
+      document.getElementById('descriptionTitle').textContent = metadata.title;
+      document.getElementById('descriptionMeta').textContent = `${selectedIndex + 1} / ${artworks.length} • ${metadata.dateStr}`;
+      document.getElementById('descriptionText').textContent = generateDescription(metadata.title);
+      document.getElementById('descriptionModal').classList.add('active');
+    }
+
+    function hideDescription() {
+      document.getElementById('descriptionModal').classList.remove('active');
+      currentView = 'scroll';
+    }
+
+    async function showCode() {
+      currentView = 'code';
+      const filename = artworks[selectedIndex];
+      const code = await fetchArtworkCode(filename);
+      document.getElementById('codeContent').textContent = code;
+      document.getElementById('codeModal').classList.add('active');
+    }
+
+    function hideCode() {
+      document.getElementById('codeModal').classList.remove('active');
+      currentView = 'description';
+    }
+
+    // Keyboard event handler
+    document.addEventListener('keydown', (e) => {
+      if (currentView === 'scroll') {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          showCatalogList();
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          showDescription();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          CATALOG_CONTAINER.scrollBy({ top: -window.innerHeight * 0.8, behavior: 'smooth' });
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          CATALOG_CONTAINER.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
+        }
+      } else if (currentView === 'catalog') {
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (selectedIndex > 0) {
+            selectedIndex--;
+            updateCatalogListSelection();
+          }
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (selectedIndex < artworks.length - 1) {
+            selectedIndex++;
+            updateCatalogListSelection();
+          }
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          hideCatalogList();
+          showDescription();
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          hideCatalogList();
+        }
+      } else if (currentView === 'description') {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          hideDescription();
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          showCode();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          currentView = 'scroll';
+          hideDescription();
+          showCatalogList();
+        }
+      } else if (currentView === 'code') {
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          hideCode();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          hideCode();
+          hideDescription();
+        }
+      }
+    });
 
     async function initCatalog() {
       try {
@@ -422,37 +827,30 @@
     function renderSections() {
       CATALOG_CONTAINER.innerHTML = '';
       SCROLL_INDICATOR.innerHTML = '';
+      artworkMetadata = {};
 
       const numIndicators = Math.min(artworks.length, MAX_INDICATORS);
+      const catalogListContainer = document.getElementById('catalogListContainer');
+      catalogListContainer.innerHTML = '';
 
       artworks.forEach((filename, index) => {
         // Parse metadata from filename
-        const bareName = filename.split('/').pop().replace('.html', '');
-        const match = bareName.match(/^(\d{8})-(\d{6})-(.+)$/);
-
-        let title = "Generative Artwork";
-        let dateStr = "Recent";
-
-        if (match) {
-          const datePart = match[1];
-          const timePart = match[2];
-          title = match[3].replace(/-/g, ' ');
-
-          const d = new Date(
-            datePart.substring(0, 4),
-            datePart.substring(4, 6) - 1,
-            datePart.substring(6, 8),
-            timePart.substring(0, 2),
-            timePart.substring(2, 4)
-          );
-          dateStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        }
-
-        // Capitalize title
-        title = title.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        const metadata = parseArtworkMetadata(filename);
+        artworkMetadata[index] = metadata;
+        const { title, dateStr } = metadata;
 
         // Keywords
         const keywords = title.split(' ').filter(w => w.length > 3).slice(0, 4);
+
+        // Add to catalog list
+        const listItem = document.createElement('div');
+        listItem.className = 'catalog-list-item';
+        listItem.dataset.index = index;
+        listItem.innerHTML = `
+          <span>${title}</span>
+          <span class="catalog-list-meta">${dateStr}</span>
+        `;
+        catalogListContainer.appendChild(listItem);
 
         // Build HTML
         const section = document.createElement('div');
