@@ -509,6 +509,11 @@
       z-index: 102;
       pointer-events: auto;
       transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      outline: none;
+    }
+
+    .code-content:focus {
+      outline: none;
     }
 
     .code-modal.active .code-content {
@@ -921,7 +926,7 @@
 
   <!-- Code Modal -->
   <div class="code-modal" id="codeModal">
-    <div class="code-content">
+    <div class="code-content" tabindex="0">
       <div class="code-header">
         <span>Source Code</span>
         <button class="art-visibility-toggle" id="codeToggleArt" onclick="toggleCodeArt()">Show Art</button>
@@ -1125,6 +1130,7 @@
       document.getElementById('codeContent').textContent = code;
       
       const codeModal = document.getElementById('codeModal');
+      const codeContentDiv = document.querySelector('.code-content');
       const descModal = document.getElementById('descriptionModal');
       
       // Hide description, show code with scale/fade animation
@@ -1133,6 +1139,8 @@
       codeModal.classList.add('hidden-by-code'); // For initial state
       setTimeout(() => {
         codeModal.classList.remove('hidden-by-code');
+        // Focus the code content so keyboard events work immediately
+        codeContentDiv.focus();
       }, 10);
       
       // Reset art visibility when showing code
