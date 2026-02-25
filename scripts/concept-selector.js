@@ -7,6 +7,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const { checkForDuplicates } = require('./check-duplicates');
+const { shouldBeMoodBased, getSentimentConcept } = require('./trend-sentiment');
 
 const CONCEPT_FILE = path.join(__dirname, '..', 'selected-concept.json');
 const HISTORY_FILE = path.join(__dirname, '..', 'concept-history.json');
@@ -166,6 +168,12 @@ function getRandomConcept(exclude = []) {
 async function selectConcept() {
   console.log('🎨 Selecting art concept...\n');
   
+  // Check if today's art should be mood-based
+  const isMoodBased = shouldBeMoodBased();
+  if (isMoodBased) {
+    console.log('🌍 Today\'s art will be based on trending sentiment/mood');
+  }
+  
   // Load prompt
   let prompt = '';
   if (fs.existsSync(PROMPT_FILE)) {
@@ -174,15 +182,29 @@ async function selectConcept() {
   
   // Try to get AI-generated concept
   let concept = null;
-  if (process.env.GEMINI_API_KEY) {
-    console.log('📡 Calling Gemini API for concept...');
-    const aiResponse = await callGemini(prompt);
-    if (aiResponse) {
-      try {
-        // Parse the response to extract concept
-        concept = parseAIResponse(aiResponse);
-      } catch (error) {
-        console.log('⚠️  Failed to parse AI response, using fallback');
+  let attempts = 0;
+  const maxAttempts = 3;
+  
+  while (!concept && attempts < maxAttempts) {
+    attempts++;
+    
+    if (process.env.GEMINI_API_KEY) {
+      console.log(`📡 Calling Gemini API for concept (attempt ${attempts}/${maxAttempts})...`);
+      const aiResponse = await callGemini(prompt);
+      if (aiResponse) {
+        try {
+          concept = parseAIResponse(aiResponse);
+          
+          // Check for duplicates
+          const dupCheck = checkForDuplicates(concept.title);
+          if (dupCheck.hasDuplicate) {
+            console.log('⚠️  Similar concept detected. Trying again...');
+            console.log(`   Similar to: ${dupCheck.similar[0].file} (${dupCheck.similar[0].matchRatio}% match)`);
+            concept = null; // Retry
+          }
+        } catch (error) {
+          console.log('⚠️  Failed to parse AI response, retrying...');
+        }
       }
     }
   }
@@ -190,9 +212,29 @@ async function selectConcept() {
   // Fall back to random selection
   if (!concept) {
     console.log('💭 Using fallback concept selection...');
-    const history = getConceptHistory();
-    const recentTitles = history.slice(-5).map(c => c.title);
-    concept = getRandomConcept(recentTitles);
+    
+    // Use mood-based fallback if applicable
+    if (isMoodBased) {
+      console.log('📊 Using sentiment-based fallback...');
+      concept = getSentimentConcept();
+    } else {
+      // Random fallback
+      const history = getConceptHistory();
+      const recentTitles = history.slice(-10).map(c => c.title);
+      
+      // Keep trying until we find a unique concept
+      let uniqueConcept = null;
+      let fallbackAttempts = 0;
+      while (!uniqueConcept && fallbackAttempts < 5) {
+        const candidate = getRandomConcept(recentTitles);
+        const dupCheck = checkForDuplicates(candidate.title);
+        if (!dupCheck.hasDuplicate) {
+          uniqueConcept = candidate;
+        }
+        fallbackAttempts++;
+      }
+      concept = uniqueConcept || getRandomConcept(recentTitles);
+    }
   }
   
   // Save selected concept
@@ -202,13 +244,17 @@ async function selectConcept() {
   console.log(`   Title: ${concept.title}`);
   console.log(`   Technique: ${concept.technique}`);
   console.log(`   Tone: ${concept.tone}`);
+  if (concept.isMoodBased) {
+    console.log(`   🌍 Mood-based: ${concept.trend}`);
+  }
   
   // Add to history
   const history = getConceptHistory();
   history.push({
     title: concept.title,
     date: new Date().toISOString(),
-    technique: concept.technique
+    technique: concept.technique,
+    isMoodBased: concept.isMoodBased || false
   });
   saveConceptHistory(history);
   

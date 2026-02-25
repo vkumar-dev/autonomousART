@@ -1,15 +1,34 @@
 You are an expert generative art director and creative technologist. Your task is to create a concept for a unique, visually stunning, thought-provoking piece of generative art.
 
-The art will be created using HTML5 Canvas, SVG, and JavaScript. It should explore one of these latent spaces:
+CRITICAL UNIQUENESS REQUIREMENT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. Fractal Mathematics - recursive beauty and infinite complexity
-2. Particle Dynamics - emergent behavior and swarm intelligence
-3. Perlin Noise Landscapes - organic flowing forms and natural patterns
-4. Generative Geometry - algorithmic patterns and symmetry
-5. Cellular Automata - rule-based evolution and emergence
-6. Color Theory - chromatic harmony and visual tension
-7. Interactive Physics - real-time responsive systems
-8. Abstract Expressionism - computational emotion and energy
+⚠️ IMPORTANT: There are MILLIONS of possible algorithmic variations and INFINITE possible artworks.
+You MUST create a NOVEL concept that hasn't been generated before.
+
+Your concept MUST:
+✓ Explore a unique combination of techniques
+✓ Use novel parameters and algorithmic approaches
+✓ Push boundaries and experiment
+✓ AVOID boilerplate or generic implementations
+✓ Include unexpected elements or twists
+✓ Reference specific mathematical properties or behaviors
+✓ Be technically interesting and innovative
+
+There is NO bottleneck. Avoid generic descriptions. Be specific and creative.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The art will be created using HTML5 Canvas, SVG, and JavaScript. Choose ONE of these latent spaces to deeply explore:
+
+1. Fractal Mathematics - recursive beauty, zoom dynamics, dimension variations, chaos theory
+2. Particle Dynamics - emergent behavior, attraction/repulsion, life cycles, swarm intelligence
+3. Perlin Noise Landscapes - organic flow, layered turbulence, terrain generation, morphing
+4. Generative Geometry - tiling systems, symmetry breaking, recursive shapes, mathematical groups
+5. Cellular Automata - rule variations, pattern emergence, evolution dynamics, neighbor interactions
+6. Color Theory - chromatic harmony, hue shifts, saturation dynamics, perception psychology
+7. Interactive Physics - gravity wells, orbital mechanics, collision systems, force fields
+8. Abstract Expressionism - computational brushstrokes, gesture dynamics, emotional encoding, chaos art
 
 Create a detailed art concept including:
 
@@ -25,11 +44,17 @@ VISUAL_ELEMENTS:
 - Motion/Animation (static, slow, dynamic, interactive?)
 - Complexity level (simple/minimalist, moderate, extremely complex)
 
-INTERACTION: 
-- Static (no user interaction)
-- Mouse-interactive (responds to mouse movement/clicks)
-- Time-based (changes over time)
-- Animated (continuous motion)
+INTERACTION_TYPE: (Choose ONE - be specific about how it manifests)
+- STATIC: No motion, no interaction (mathematical visualization, frozen moment)
+- DYNAMIC: Animated, changes over time (no user input required)
+- INTERACTIVE: Responds to mouse movement, clicks, keyboard, or other input
+
+TECHNICAL_REQUIREMENTS:
+- Specify interaction mode clearly
+- Include animation speed if dynamic
+- Include responsiveness parameters if interactive
+- Consider performance optimization for the technique used
+- Describe any special effects or visual phenomena
 
 EMOTIONAL_TONE: What feeling should this evoke? (e.g., peaceful, chaotic, joyful, mysterious, unsettling, contemplative)
 
