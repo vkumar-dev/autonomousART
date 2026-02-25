@@ -1,0 +1,79 @@
+name: Autonomous Art Generation
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install node-fetch
+
+      - name: Select concept
+        run: node scripts/concept-selector.js
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Generate artwork
+        run: node scripts/art-generator.js
+
+      - name: Build gallery index
+        run: node scripts/build-gallery.js
+
+      - name: Configure Git
+        run: |
+          git config user.name "autonomousART Bot"
+          git config user.email "bot@autonomousart.local"
+
+      - name: Commit and push
+        run: |
+          if git status --porcelain | grep -q "artworks/"; then
+            ARTWORK=$(git status --porcelain | grep "artworks/" | awk '{print $2}' | xargs -n1 basename | head -1)
+            git add artworks/ artworks-list.json
+            git commit -m "🎨 [AUTO] New artwork: ${ARTWORK}"
+            git push origin main
+          else
+            echo "No new artworks to commit"
+          fi
+
+  deploy:
+    needs: generate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: '.'
+
+      - name: Deploy to Pages
+        id: deployment
+        uses: actions/deploy-pages@v2

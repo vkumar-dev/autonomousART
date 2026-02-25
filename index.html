@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>autonomousART - AI-Powered Generative Art Gallery</title>
+  <meta name="description" content="Exploring the latent space of creative code through AI-guided generative art. New pieces every 6 hours.">
+  <link rel="stylesheet" href="styles/gallery.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-content">
+      <h1 class="logo">
+        <span class="logo-icon">🎨</span>
+        <span class="logo-text">autonomousART</span>
+      </h1>
+      <p class="tagline">Exploring the latent space of generative art</p>
+      <p class="subtitle">AI-guided creative visualizations • New pieces every 6 hours</p>
+    </div>
+  </header>
+
+  <main class="content">
+    <section class="gallery-section">
+      <div class="section-header">
+        <h2>Gallery</h2>
+        <span class="artwork-count" id="artwork-count"></span>
+      </div>
+      
+      <div id="gallery-grid" class="gallery-grid">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Loading artworks...</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Generated autonomously every 6 hours</p>
+    <p><a href="https://github.com" target="_blank">GitHub</a></p>
+  </footer>
+
+  <script src="scripts/gallery.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+You are an expert generative art director and creative technologist. Your task is to create a concept for a unique, visually stunning, thought-provoking piece of generative art.
+
+The art will be created using HTML5 Canvas, SVG, and JavaScript. It should explore one of these latent spaces:
+
+1. Fractal Mathematics - recursive beauty and infinite complexity
+2. Particle Dynamics - emergent behavior and swarm intelligence
+3. Perlin Noise Landscapes - organic flowing forms and natural patterns
+4. Generative Geometry - algorithmic patterns and symmetry
+5. Cellular Automata - rule-based evolution and emergence
+6. Color Theory - chromatic harmony and visual tension
+7. Interactive Physics - real-time responsive systems
+8. Abstract Expressionism - computational emotion and energy
+
+Create a detailed art concept including:
+
+TITLE: A evocative, poetic name for the piece
+
+CONCEPT: A brief description of the artistic intent (2-3 sentences)
+
+TECHNIQUE: Which generative art technique(s) to use (from list above)
+
+VISUAL_ELEMENTS:
+- Primary visual element (what's the main thing to see?)
+- Color palette (list 3-5 hex colors or color names)
+- Motion/Animation (static, slow, dynamic, interactive?)
+- Complexity level (simple/minimalist, moderate, extremely complex)
+
+INTERACTION: 
+- Static (no user interaction)
+- Mouse-interactive (responds to mouse movement/clicks)
+- Time-based (changes over time)
+- Animated (continuous motion)
+
+EMOTIONAL_TONE: What feeling should this evoke? (e.g., peaceful, chaotic, joyful, mysterious, unsettling, contemplative)
+
+TECHNICAL_HINTS: Any specific algorithms or approaches that might work well (e.g., "use Perlin noise with 3D layers", "implement boid flocking", "create fractals with rotation")
+
+PROMPT_FOR_CODE_GENERATION:
+Write a detailed technical prompt that could be used to generate the actual HTML/Canvas code for this artwork. Include:
+- Exact canvas dimensions and setup
+- Which libraries if any (three.js, babylon.js, p5.js, custom)
+- Specific algorithm details
+- Color management approach
+- Performance considerations
+
+Remember: The art should be attention-grabbing, thought-provoking, and explore interesting mathematical or conceptual spaces. Push boundaries. Be creative and experimental.
