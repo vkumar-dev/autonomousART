@@ -522,6 +522,49 @@
       pointer-events: none;
     }
 
+    /* Code view modes */
+    .code-modal.fullscreen .code-content {
+      position: fixed;
+      left: 0;
+      top: 0;
+      transform: translate(0, 0) scale(1);
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+      max-height: 100%;
+      border-radius: 0;
+      border: none;
+      padding: 60px;
+    }
+
+    .code-modal.fullscreen {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .code-modal.fullscreen.opacity-high {
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .code-modal.fullscreen.opacity-higher {
+      background: rgba(0, 0, 0, 0.85);
+    }
+
+    .code-modal.fullscreen.opacity-full {
+      background: rgba(0, 0, 0, 0.95);
+    }
+
+    .code-modal.fullscreen.opacity-high .code-content {
+      background: rgba(5, 5, 5, 0.85);
+    }
+
+    .code-modal.fullscreen.opacity-higher .code-content {
+      background: rgba(5, 5, 5, 0.92);
+    }
+
+    .code-modal.fullscreen.opacity-full .code-content {
+      background: rgba(5, 5, 5, 1);
+    }
+
     .code-header {
       margin-bottom: 30px;
       font-family: 'Outfit', sans-serif;
@@ -913,6 +956,7 @@
     let currentView = 'scroll'; // 'scroll', 'catalog', 'description', 'code'
     let selectedIndex = 0;
     let artworkMetadata = {}; // Cache artwork info
+    let codeViewMode = 1; // 1: centered, 2: fullscreen 70%, 3: fullscreen 85%, 4: fullscreen 100%
 
     // Parse artwork metadata from filename
     function parseArtworkMetadata(filename) {
@@ -1099,9 +1143,34 @@
       }
     }
 
+    function cycleCodeViewMode() {
+      const codeModal = document.getElementById('codeModal');
+      codeViewMode = (codeViewMode % 4) + 1;
+      
+      codeModal.classList.remove('fullscreen', 'opacity-high', 'opacity-higher', 'opacity-full');
+      
+      if (codeViewMode === 2) {
+        codeModal.classList.add('fullscreen');
+      } else if (codeViewMode === 3) {
+        codeModal.classList.add('fullscreen', 'opacity-high');
+      } else if (codeViewMode === 4) {
+        codeModal.classList.add('fullscreen', 'opacity-higher');
+      } else if (codeViewMode === 5) {
+        codeModal.classList.add('fullscreen', 'opacity-full');
+        codeViewMode = 5; // Allow going to 5, then reset to 1
+      } else {
+        // Reset to centered
+        codeViewMode = 1;
+      }
+    }
+
     function hideCode() {
       const codeModal = document.getElementById('codeModal');
       const descModal = document.getElementById('descriptionModal');
+      
+      // Reset code view mode when hiding
+      codeViewMode = 1;
+      codeModal.classList.remove('fullscreen', 'opacity-high', 'opacity-higher', 'opacity-full');
       
       // Hide code, show description
       codeModal.classList.add('hidden-by-code');
@@ -1232,6 +1301,9 @@
         if (e.key === 'ArrowLeft') {
           e.preventDefault();
           hideCode();
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          cycleCodeViewMode();
         } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
           // Allow natural scrolling within code panel
           // Do nothing, let default scroll behavior work
