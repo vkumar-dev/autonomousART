@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gravity Wells - autonomousART</title>
+  <style>
+    body { margin: 0; background: #000; }
+    canvas { display: block; cursor: crosshair; }
+    .info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #fff;
+      background: rgba(0,0,0,0.7);
+      padding: 15px 20px;
+      border-radius: 8px;
+      z-index: 10;
+    }
+    .back {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      color: #fff;
+      text-decoration: none;
+      background: rgba(0,0,0,0.7);
+      padding: 10px 15px;
+      border-radius: 6px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="info">
+    <h1>Gravity Wells</h1>
+    <p>Objects orbiting invisible gravity points, creating complex dance patterns with trails of light.</p>
+  </div>
+  <a href="../index.html" class="back">← Back</a>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    class Orbiter {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 3;
+        this.vy = (Math.random() - 0.5) * 3;
+        this.mass = Math.random() * 2 + 1;
+        this.trail = [];
+        this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+      }
+      
+      update(objects) {
+        for (let obj of objects) {
+          if (obj === this) continue;
+          const dx = obj.x - this.x;
+          const dy = obj.y - this.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 50) continue;
+          const force = obj.mass / (dist * dist);
+          this.vx += (dx / dist) * force * 0.0001;
+          this.vy += (dy / dist) * force * 0.0001;
+        }
+        
+        this.x += this.vx;
+        this.y += this.vy;
+        this.trail.push({x: this.x, y: this.y});
+        if (this.trail.length > 100) this.trail.shift();
+      }
+      
+      draw() {
+        ctx.strokeStyle = this.color;
+        ctx.globalAlpha = 0.3;
+        ctx.beginPath();
+        this.trail.forEach((p, i) => {
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        });
+        ctx.stroke();
+        
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.mass, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    const objects = Array(15).fill(null).map(() => new Orbiter());
+    
+    function animate() {
+      ctx.fillStyle = 'rgba(0,0,0,0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      for (let obj of objects) {
+        obj.update(objects);
+        obj.draw();
+      }
+      
+      requestAnimationFrame(animate);
+    }
+    
+    animate();
+  </script>
+</body>
+</html>

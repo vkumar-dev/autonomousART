@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bloom Effect - autonomousART</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0e27;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    canvas { display: block; }
+    .info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #fff;
+      background: rgba(0,0,0,0.7);
+      padding: 15px 20px;
+      border-radius: 8px;
+      max-width: 300px;
+      z-index: 10;
+    }
+    .back {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      color: #fff;
+      text-decoration: none;
+      background: rgba(0,0,0,0.7);
+      padding: 10px 15px;
+      border-radius: 6px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="info">
+    <h1>Bloom Effect</h1>
+    <p>Particles bloom and dissipate in a field, like flowers blooming in timelapse, creating a garden of light.</p>
+  </div>
+  <a href="../index.html" class="back">← Back</a>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const particles = [];
+    const attractor = { x: canvas.width / 2, y: canvas.height / 2 };
+    
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 4;
+        this.vy = (Math.random() - 0.5) * 4;
+        this.life = 1;
+        this.hue = Math.random() * 360;
+      }
+      
+      update() {
+        const dx = attractor.x - this.x;
+        const dy = attractor.y - this.y;
+        const dist = Math.hypot(dx, dy);
+        const force = 1000 / (dist * dist + 1);
+        
+        this.vx += (dx / dist) * force * 0.01;
+        this.vy += (dy / dist) * force * 0.01;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life -= 0.002;
+        
+        this.vx *= 0.99;
+        this.vy *= 0.99;
+      }
+      
+      draw() {
+        ctx.globalAlpha = this.life;
+        ctx.fillStyle = `hsl(${this.hue}, 100%, 50%)`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    function animate() {
+      ctx.globalAlpha = 0.1;
+      ctx.fillStyle = '#0a0e27';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = 1;
+      
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        particles[i].draw();
+        if (particles[i].life <= 0) particles.splice(i, 1);
+      }
+      
+      for (let i = 0; i < 5; i++) {
+        particles.push(new Particle());
+      }
+      
+      attractor.x += Math.sin(Date.now() * 0.0005) * 50;
+      attractor.y += Math.cos(Date.now() * 0.0003) * 50;
+      
+      requestAnimationFrame(animate);
+    }
+    
+    animate();
+  </script>
+</body>
+</html>
