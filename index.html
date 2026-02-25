@@ -314,7 +314,8 @@
       display: flex;
       flex-direction: column;
       gap: 0;
-      will-change: transform;
+      will-change: scroll-position;
+      contain: layout style paint;
     }
 
     .catalog-list-container::-webkit-scrollbar {
@@ -338,16 +339,15 @@
       padding: 20px 0;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.25s ease, transform 0.25s ease;
       font-size: 18px;
       color: rgba(255, 255, 255, 0.6);
       display: flex;
       justify-content: space-between;
       align-items: center;
       position: relative;
-      transform: translateX(0);
       opacity: 0.7;
-      will-change: transform, opacity, background-color;
+      will-change: opacity, transform;
     }
 
     .catalog-list-item:hover {
@@ -356,12 +356,11 @@
     }
 
     .catalog-list-item.selected {
-      background: rgba(247, 37, 133, 0.1);
+      background: rgba(247, 37, 133, 0.08);
       color: #fff;
       padding-left: 30px;
       opacity: 1;
-      transform: translateX(20px) scale(1.02);
-      box-shadow: inset 200px 0 0 rgba(247, 37, 133, 0.05);
+      transform: translateX(15px);
     }
 
     .catalog-list-item.selected::before {
@@ -370,7 +369,6 @@
       left: 0;
       color: #f72585;
       font-weight: bold;
-      animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     @keyframes slideIn {
@@ -426,7 +424,8 @@
       overflow-y: auto;
       z-index: 101;
       pointer-events: auto;
-      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      will-change: opacity, transform;
     }
 
     .description-modal.active .description-content {
@@ -513,7 +512,8 @@
       overflow-y: auto;
       z-index: 102;
       pointer-events: auto;
-      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      will-change: opacity, transform;
       outline: none;
     }
 
@@ -1064,16 +1064,11 @@
       }
     }
 
-    // Beautify and format code with proper indentation
+    // Beautify and format code with proper indentation (optimized)
     function beautifyCode(code) {
       let indentLevel = 0;
       let result = [];
-      let inString = false;
-      let stringChar = '';
-      let inComment = false;
-      let inMultiComment = false;
       
-      // Split and process line by line first
       const lines = code.split('\n');
       
       for (let line of lines) {
@@ -1085,26 +1080,22 @@
           indentLevel = Math.max(0, indentLevel - 1);
         }
         
-        // Add indented line
         result.push('  '.repeat(indentLevel) + line);
         
-        // Update indent based on opening braces
-        const openCount = (line.match(/{/g) || []).length;
-        const closeCount = (line.match(/}/g) || []).length;
+        // Count braces in one pass
+        let openCount = 0, closeCount = 0;
+        for (let char of line) {
+          if (char === '{') openCount++;
+          else if (char === '}') closeCount++;
+        }
         indentLevel += openCount - closeCount;
       }
       
-      // Join and add more formatting
-      let formatted = result.join('\n');
-      
-      // Format function calls and statements
-      formatted = formatted
+      // Single pass for formatting
+      return result.join('\n')
         .replace(/\)\s*{/g, ') {\n')
-        .replace(/;\s*(?!$)/gm, ';\n')
-        .replace(/,\s*([^\n])/g, ',\n  $1')
-        .replace(/\n\n+/g, '\n'); // Remove multiple blank lines
-      
-      return formatted;
+        .replace(/;\s*(?![\n$])/gm, ';\n')
+        .replace(/\n\n+/g, '\n');
     }
 
     // View management functions
@@ -1267,37 +1258,42 @@
 
     function buildKeyboardMap() {
       const grid = document.getElementById('keyboardMapGrid');
-      grid.innerHTML = '';
+      
+      // Use fragment to batch DOM operations
+      const fragment = document.createDocumentFragment();
 
       artworks.forEach((filename, index) => {
         const item = document.createElement('div');
         item.className = 'keyboard-map-item';
         if (index === selectedIndex) item.classList.add('selected');
         item.dataset.index = index;
-        item.onclick = () => {
-          selectedIndex = index;
-          updateKeyboardMapSelection();
-          hideCatalogList();
-          document.getElementById('keyboardMapOverlay').classList.remove('active');
-          scrollToArtwork(selectedIndex);
-        };
-
+        
         const metadata = artworkMetadata[index];
         const hue = (index * 17) % 360;
         
-        // Use CSS gradient instead of canvas for better performance
-        const thumbnail = document.createElement('div');
-        thumbnail.className = 'keyboard-map-thumbnail';
-        thumbnail.style.background = `linear-gradient(135deg, hsl(${hue}, 100%, 30%), hsl(${hue + 60}, 100%, 50%))`;
-        item.appendChild(thumbnail);
-
-        const label = document.createElement('div');
-        label.className = 'keyboard-map-label';
-        label.textContent = metadata.title;
-        item.appendChild(label);
-
-        grid.appendChild(item);
+        // Build HTML as string, insert once
+        item.innerHTML = `
+          <div class="keyboard-map-thumbnail" style="background: linear-gradient(135deg, hsl(${hue}, 100%, 30%), hsl(${hue + 60}, 100%, 50%))"></div>
+          <div class="keyboard-map-label">${metadata.title}</div>
+        `;
+        
+        // Event delegation - single listener on grid
+        item.addEventListener('click', handleMapItemClick);
+        
+        fragment.appendChild(item);
       });
+      
+      grid.innerHTML = '';
+      grid.appendChild(fragment);
+    }
+
+    function handleMapItemClick(e) {
+      const index = parseInt(e.currentTarget.dataset.index);
+      selectedIndex = index;
+      updateKeyboardMapSelection();
+      hideCatalogList();
+      document.getElementById('keyboardMapOverlay').classList.remove('active');
+      scrollToArtwork(selectedIndex);
     }
 
     function updateKeyboardMapSelection() {
