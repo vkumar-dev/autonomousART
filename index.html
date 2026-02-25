@@ -1293,9 +1293,14 @@
         } else if (e.key === 'ArrowRight') {
           e.preventDefault();
           showCode();
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-          // Allow natural scrolling within description panel
-          // Do nothing, let default scroll behavior work
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const descContent = document.querySelector('.description-content');
+          descContent.scrollBy({ top: -100, behavior: 'smooth' });
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const descContent = document.querySelector('.description-content');
+          descContent.scrollBy({ top: 100, behavior: 'smooth' });
         }
       } else if (currentView === 'code') {
         if (e.key === 'ArrowLeft') {
@@ -1304,9 +1309,14 @@
         } else if (e.key === 'ArrowRight') {
           e.preventDefault();
           cycleCodeViewMode();
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-          // Allow natural scrolling within code panel
-          // Do nothing, let default scroll behavior work
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const codeContent = document.querySelector('.code-content');
+          codeContent.scrollBy({ top: -100, behavior: 'smooth' });
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const codeContent = document.querySelector('.code-content');
+          codeContent.scrollBy({ top: 100, behavior: 'smooth' });
         } else if (e.key === 'Escape') {
           e.preventDefault();
           hideCode();
