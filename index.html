@@ -428,6 +428,11 @@
       transform: translateX(0);
     }
 
+    .description-modal.hidden-by-code .description-content {
+      transform: translateX(-100%);
+      pointer-events: none;
+    }
+
     .description-title {
       font-family: 'Outfit', sans-serif;
       font-size: 48px;
@@ -1060,19 +1065,28 @@
       const code = await fetchArtworkCode(filename);
       document.getElementById('codeContent').textContent = code;
       
-      const modal = document.getElementById('codeModal');
-      modal.classList.add('active');
+      const codeModal = document.getElementById('codeModal');
+      const descModal = document.getElementById('descriptionModal');
+      
+      codeModal.classList.add('active');
+      // Hide description panel by sliding it left
+      descModal.classList.add('hidden-by-code');
       
       // Reset art visibility when showing code
       if (artHidden) {
         artHidden = false;
-        modal.classList.remove('art-hidden');
+        codeModal.classList.remove('art-hidden');
         document.getElementById('codeToggleArt').textContent = 'Hide Art';
       }
     }
 
     function hideCode() {
-      document.getElementById('codeModal').classList.remove('active');
+      const codeModal = document.getElementById('codeModal');
+      const descModal = document.getElementById('descriptionModal');
+      
+      codeModal.classList.remove('active');
+      // Show description panel again by sliding it in from left
+      descModal.classList.remove('hidden-by-code');
       currentView = 'description';
     }
 
