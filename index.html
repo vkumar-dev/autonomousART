@@ -180,7 +180,7 @@
       pointer-events: auto;
       transform: translateY(20px);
       opacity: 0;
-      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .art-section.active .info-card {
@@ -230,6 +230,19 @@
       left: 40px;
       z-index: 5;
       pointer-events: none;
+    }
+
+    .scroll-info-title,
+    .scroll-info-meta {
+      transform: translateY(20px);
+      opacity: 0;
+      transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s ease;
+    }
+
+    .art-section.active .scroll-info-title,
+    .art-section.active .scroll-info-meta {
+      transform: translateY(0);
+      opacity: 1;
     }
 
     .scroll-info-title {
@@ -303,7 +316,7 @@
       flex-direction: column;
       overflow: hidden;
       opacity: 0;
-      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .catalog-list-view.active {
@@ -453,7 +466,7 @@
       overflow-y: auto;
       z-index: 101;
       pointer-events: auto;
-      transition: opacity 0.5s ease, transform 0.5s ease;
+      transition: opacity 1s ease, transform 1s ease;
       will-change: opacity, transform;
     }
 
@@ -541,7 +554,7 @@
       overflow-y: auto;
       z-index: 102;
       pointer-events: auto;
-      transition: opacity 0.5s ease, transform 0.5s ease;
+      transition: opacity 1s ease, transform 1s ease;
       will-change: opacity, transform;
       outline: none;
     }
@@ -1314,7 +1327,7 @@
       setTimeout(() => {
         codeModal.classList.remove('active');
         currentView = 'description';
-      }, 600);
+      }, 1000);
     }
 
     // Keyboard map functions
