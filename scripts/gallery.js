@@ -92,7 +92,7 @@ class Gallery {
     }
 
     this.galleryGrid.innerHTML = validArtworks
-      .map(artwork => this.createArtworkCard(artwork))
+      .map((artwork, index) => this.createArtworkCard(artwork, index))
       .join('');
     
     // Update count
@@ -105,7 +105,7 @@ class Gallery {
   /**
    * Create artwork card HTML
    */
-  createArtworkCard(artwork) {
+  createArtworkCard(artwork, index) {
     const date = new Date(artwork.date);
     const formattedDate = date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -114,7 +114,7 @@ class Gallery {
     });
 
     return `
-      <a href="${artwork.path}" class="artwork-card" title="${this.escapeHtml(artwork.title)}" target="_blank">
+      <a href="${artwork.path}" class="artwork-card" style="animation-delay:${Math.min(index * 35, 400)}ms" title="${this.escapeHtml(artwork.title)}" target="_blank">
         <div class="artwork-meta">
           <span class="artwork-type">Generative</span>
           <span class="artwork-date">${formattedDate}</span>

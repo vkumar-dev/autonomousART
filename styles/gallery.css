@@ -122,12 +122,20 @@ header.hero {
   padding: 20px;
   position: relative;
   backdrop-filter: blur(10px);
+  opacity: 0;
+  transform: translateY(14px);
+  animation: cardIn 0.45s ease forwards;
 }
 
 .artwork-card:hover {
   transform: translateY(-8px);
   border-color: var(--secondary);
   box-shadow: 0 20px 40px rgba(247, 37, 133, 0.2);
+}
+
+.artwork-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .artwork-card::before {
@@ -253,6 +261,30 @@ header.hero {
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
+}
+
+@keyframes cardIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .logo-icon,
+  .artwork-card,
+  .loading-spinner {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .artwork-card {
+    opacity: 1;
+  }
 }
 
 /* Responsive */
