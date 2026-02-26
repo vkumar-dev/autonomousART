@@ -39,7 +39,10 @@
       overflow-y: scroll;
       overflow-x: hidden;
       scroll-snap-type: y mandatory;
+      scroll-snap-stop: always;
       scroll-behavior: smooth;
+      overscroll-behavior-y: contain;
+      touch-action: pan-y;
       -ms-overflow-style: none;
       /* IE and Edge */
       scrollbar-width: none;
@@ -61,6 +64,15 @@
       align-items: center;
       justify-content: center;
       background: #000;
+      opacity: 0.9;
+      transform: scale(0.995);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+      will-change: opacity, transform;
+    }
+
+    .art-section.active {
+      opacity: 1;
+      transform: scale(1);
     }
 
     .art-frame {
@@ -142,6 +154,16 @@
       background: rgba(255, 255, 255, 0.15);
       border-color: rgba(255, 255, 255, 0.3);
       transform: translateY(-2px);
+    }
+
+    .glass-btn:active {
+      transform: translateY(0);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .glass-btn:focus-visible {
+      outline: 2px solid rgba(247, 37, 133, 0.9);
+      outline-offset: 2px;
     }
 
     /* Bottom Info Card */
@@ -895,6 +917,22 @@
         display: none;
       }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      .catalog-container {
+        scroll-behavior: auto;
+      }
+
+      .art-frame,
+      .info-card,
+      .catalog-list-view,
+      .description-content,
+      .code-content,
+      .art-section {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
   </style>
 </head>
 
@@ -997,6 +1035,28 @@
     let selectedIndex = 0;
     let artworkMetadata = {}; // Cache artwork info
     let codeViewMode = 1; // 1: centered, 2: fullscreen 70%, 3: fullscreen 85%, 4: fullscreen 100%
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let isScrollTransitioning = false;
+    let touchStartY = 0;
+
+    function getScrollBehavior() {
+      return prefersReducedMotion ? 'auto' : 'smooth';
+    }
+
+    function navigateScroll(direction) {
+      if (isScrollTransitioning || currentView !== 'scroll') return;
+
+      isScrollTransitioning = true;
+      CATALOG_CONTAINER.scrollBy({
+        top: window.innerHeight * 0.85 * direction,
+        behavior: getScrollBehavior()
+      });
+
+      const releaseDelay = prefersReducedMotion ? 120 : 420;
+      setTimeout(() => {
+        isScrollTransitioning = false;
+      }, releaseDelay);
+    }
 
     // Parse artwork metadata from filename
     function parseArtworkMetadata(filename) {
@@ -1133,7 +1193,7 @@
     function scrollToArtwork(index) {
       const section = document.querySelector(`[data-index="${index}"]`);
       if (section) {
-        section.scrollIntoView({ behavior: 'smooth' });
+        section.scrollIntoView({ behavior: getScrollBehavior(), block: 'start' });
       }
     }
 
@@ -1340,10 +1400,10 @@
           showDescription();
         } else if (e.key === 'ArrowUp') {
           e.preventDefault();
-          CATALOG_CONTAINER.scrollBy({ top: -window.innerHeight * 0.8, behavior: 'smooth' });
+          navigateScroll(-1);
         } else if (e.key === 'ArrowDown') {
           e.preventDefault();
-          CATALOG_CONTAINER.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
+          navigateScroll(1);
         }
       } else if (currentView === 'catalog') {
         if (e.key === 'ArrowUp') {
@@ -1597,6 +1657,32 @@
     }
 
     // Start
+    CATALOG_CONTAINER.addEventListener('wheel', (e) => {
+      if (currentView !== 'scroll') return;
+      if (Math.abs(e.deltaY) < 10) return;
+      e.preventDefault();
+      navigateScroll(e.deltaY > 0 ? 1 : -1);
+    }, { passive: false });
+
+    CATALOG_CONTAINER.addEventListener('touchstart', (e) => {
+      if (currentView !== 'scroll') return;
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    CATALOG_CONTAINER.addEventListener('touchmove', (e) => {
+      if (currentView !== 'scroll') return;
+      if (isScrollTransitioning) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    CATALOG_CONTAINER.addEventListener('touchend', (e) => {
+      if (currentView !== 'scroll') return;
+      const deltaY = touchStartY - e.changedTouches[0].clientY;
+      if (Math.abs(deltaY) < 48) return;
+      navigateScroll(deltaY > 0 ? 1 : -1);
+    }, { passive: true });
+
     initCatalog();
   </script>
 </body>
