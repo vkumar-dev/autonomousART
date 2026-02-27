@@ -105,8 +105,9 @@ jobs:
           echo "Checking if ollama is still running..."
           ps aux | grep ollama | grep -v grep || echo "⚠️  Ollama process not found!"
           
+          EXIT_CODE=0
           timeout 600 node scripts/ollama-concept-generator.js || EXIT_CODE=$?
-          if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 124 ]; then
+          if [ "$EXIT_CODE" -ne 0 ] && [ "$EXIT_CODE" -ne 124 ]; then
             echo "❌ Concept generation failed"
             exit 1
           fi
