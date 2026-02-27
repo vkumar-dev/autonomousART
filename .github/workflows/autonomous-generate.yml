@@ -2,8 +2,8 @@ name: Autonomous Art Generation
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Every 6 hours
-  workflow_dispatch:  # Manual trigger
+    - cron: '0 */4 * * *'  # Every 4 hours (0, 4, 8, 12, 16, 20 UTC)
+  workflow_dispatch:  # Manual trigger for testing
 
 jobs:
   generate:
@@ -23,7 +23,25 @@ jobs:
       - name: Install dependencies
         run: npm install node-fetch
 
-      - name: Select concept
+      - name: Setup Ollama (if available)
+        run: |
+          echo "🤖 Checking for Ollama availability..."
+          if command -v ollama &> /dev/null; then
+            echo "✅ Ollama found"
+            curl -s http://localhost:11434/api/tags > /dev/null && echo "✅ Ollama service running" || echo "⚠️  Ollama service not responding"
+          else
+            echo "ℹ️  Ollama not installed, will use fallback concept selection"
+          fi
+
+      - name: Generate concept with Ollama (primary)
+        continue-on-error: true
+        run: node scripts/ollama-concept-generator.js
+        env:
+          OLLAMA_URL: ${{ secrets.OLLAMA_URL || 'http://localhost:11434' }}
+          OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL || 'mistral' }}
+
+      - name: Fallback: Select concept via Gemini
+        if: failure()
         run: node scripts/concept-selector.js
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -43,9 +61,9 @@ jobs:
         run: |
           if git status --porcelain | grep -q "artworks/"; then
             ARTWORK=$(git status --porcelain | grep "artworks/" | awk '{print $2}' | xargs -n1 basename | head -1)
-            git add artworks/ artworks-list.json
-            git commit -m "🎨 [AUTO] New artwork: ${ARTWORK}"
-            git push origin main
+            git add artworks/ artworks-list.json concept-history.json
+            git commit -m "🎨 Auto-generated artwork: $(date -u +%Y-%m-%d) [skip ci]"
+            git push origin master
           else
             echo "No new artworks to commit"
           fi
