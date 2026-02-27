@@ -64,6 +64,11 @@ function getRandomTone() {
 }
 
 function parseConceptResponse(response) {
+  console.log('📝 Raw response from Ollama:');
+  console.log('---');
+  console.log(response.substring(0, 500));
+  console.log('---\n');
+
   // Parse Ollama response to extract concept details
   const concept = {
     title: 'Untitled Concept',
@@ -76,37 +81,58 @@ function parseConceptResponse(response) {
   };
 
   try {
-    // Try to extract title
-    const titleMatch = response.match(/title[:\s]+([^\n]+)/i);
-    if (titleMatch) concept.title = titleMatch[1].trim().replace(/^["']|["']$/g, '');
-
-    // Try to extract concept description
-    const conceptMatch = response.match(/concept[:\s]+([^\n]+(?:\n(?!\w)[^\n]+)*)/i);
-    if (conceptMatch) concept.concept = conceptMatch[1].trim().replace(/^["']|["']$/g, '');
-
-    // Try to extract technique if mentioned
-    const techniqueMatch = response.match(/technique[:\s]+([^\n]+)/i);
-    if (techniqueMatch) {
-      const mentioned = techniqueMatch[1].trim();
-      if (ART_TECHNIQUES.some(t => mentioned.includes(t))) {
-        concept.technique = ART_TECHNIQUES.find(t => mentioned.includes(t));
+    // Split response into lines
+    const lines = response.split('\n').map(l => l.trim()).filter(l => l);
+    
+    lines.forEach(line => {
+      // Extract title
+      if (line.match(/^title:/i)) {
+        const match = line.match(/^title:\s*(.+)$/i);
+        if (match) concept.title = match[1].trim().slice(0, 50);
       }
-    }
+      
+      // Extract concept
+      if (line.match(/^concept:/i)) {
+        const match = line.match(/^concept:\s*(.+)$/i);
+        if (match) concept.concept = match[1].trim().slice(0, 200);
+      }
+      
+      // Extract technique
+      if (line.match(/^technique:/i)) {
+        const match = line.match(/^technique:\s*(.+)$/i);
+        if (match) {
+          const mentioned = match[1].trim();
+          const foundTechnique = ART_TECHNIQUES.find(t => mentioned.includes(t));
+          if (foundTechnique) concept.technique = foundTechnique;
+        }
+      }
+      
+      // Extract colors
+      if (line.match(/^colors:/i)) {
+        const colorMatches = line.match(/#[0-9a-f]{6}/gi);
+        if (colorMatches && colorMatches.length > 0) {
+          concept.colors = [...new Set(colorMatches.slice(0, 5))];
+        }
+      }
+      
+      // Extract tone
+      if (line.match(/^tone:/i)) {
+        const match = line.match(/^tone:\s*(.+)$/i);
+        if (match) {
+          const mentioned = match[1].trim();
+          const foundTone = EMOTIONAL_TONES.find(t => mentioned.includes(t));
+          if (foundTone) concept.tone = foundTone;
+        }
+      }
+    });
 
-    // Try to extract colors (looking for hex codes)
-    const colorMatches = response.match(/#[0-9a-f]{6}/gi);
-    if (colorMatches && colorMatches.length > 0) {
-      concept.colors = [...new Set(colorMatches.slice(0, 5))];
+    // Validate we got at least a title from parsing
+    if (concept.title === 'Untitled Concept') {
+      console.warn('⚠️  Warning: Could not extract structured data from response');
     }
-
-    // Extract tone
-    const toneMatch = response.match(/tone[:\s]+([^\n]+)/i) || 
-                      response.match(/mood[:\s]+([^\n]+)/i) ||
-                      response.match(/emotional[:\s]+([^\n]+)/i);
-    if (toneMatch) concept.tone = toneMatch[1].trim().replace(/^["']|["']$/g, '');
 
   } catch (error) {
-    console.warn('⚠️  Warning: Could not fully parse response, using defaults');
+    console.error('❌ Parse error:', error.message);
   }
 
   return concept;
@@ -135,18 +161,16 @@ async function generateConceptWithOllama() {
   if (fs.existsSync(PROMPT_FILE)) {
     prompt = fs.readFileSync(PROMPT_FILE, 'utf8');
   } else {
-    // Default prompt
-    prompt = `Generate a unique and creative art concept for generative/computational art. 
+    // Simplified prompt for better LLM compliance
+    prompt = `You are an art concept generator. Create ONE art concept in this exact format:
 
-Include the following in your response:
-- Title: [A compelling name for the art piece]
-- Concept: [Detailed description of what the art shows, its visual elements, and how it evolves]
-- Technique: [One of: Fractal Mathematics, Particle Dynamics, Perlin Noise Landscapes, Generative Geometry, Cellular Automata, Color Theory, Interactive Physics, Abstract Expressionism]
-- Colors: [A color palette with 4-5 colors as hex codes]
-- Tone: [The emotional tone or mood]
-- Interaction: [How the viewer might interact: Static, Time-based, Mouse-interactive, or Animated]
+Title: [2-4 word name]
+Concept: [1-2 sentences describing the visual artwork]
+Technique: [Pick one: Fractal Mathematics, Particle Dynamics, Perlin Noise Landscapes, Generative Geometry, Cellular Automata, Color Theory, Interactive Physics, Abstract Expressionism]
+Colors: #1a1a2e #16213e #0f3460 #e94560
+Tone: [Pick one: Hypnotic, Chaotic, Peaceful, Sacred, Mysterious, Energetic, Cosmic, Complex, Beautiful, Intricate, Thought-provoking, Surreal]
 
-Create something original, visually compelling, and computationally interesting. Focus on mathematical beauty and visual harmony.`;
+Only respond with these 5 lines, nothing else.`;
   }
 
   // Replace placeholders if any
