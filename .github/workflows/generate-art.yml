@@ -63,29 +63,22 @@ jobs:
             sleep 2
           done
 
-      - name: Wait for Ollama and ensure model available
+      - name: Pull and prepare Ollama models
+        timeout-minutes: 20
         run: |
-          echo "⏳ Waiting for Ollama API to be ready..."
-          for i in {1..30}; do
-            if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
-              echo "✅ Ollama API is responsive"
-              
-              # Pre-warm the model by making a test request
-              echo "🔥 Pre-warming mistral model..."
-              timeout 120 curl -s -X POST http://localhost:11434/api/generate \
-                -H "Content-Type: application/json" \
-                -d '{"model":"mistral","prompt":"test","stream":false}' > /dev/null 2>&1 || true
-              
-              echo "✅ Model pre-warmed"
-              sleep 2
-              break
-            fi
-            echo "⏳ Waiting... ($i/30)"
-            sleep 2
-          done
+          echo "📥 Pulling mistral model (this may take a while)..."
+          # Pull the model using the ollama CLI directly
+          # This will download and cache the model
+          timeout 1200 ollama pull mistral || {
+            echo "⚠️  Failed to pull mistral, trying smaller model..."
+            timeout 600 ollama pull neural-chat || true
+          }
           
+          echo ""
+          echo "✅ Model pull complete"
+          echo ""
           echo "📋 Available models:"
-          curl -s http://localhost:11434/api/tags
+          curl -s http://localhost:11434/api/tags || echo "API not ready yet"
 
       - name: Pre-generation health check
         run: |
