@@ -97,7 +97,7 @@ jobs:
         timeout-minutes: 15
         env:
           OLLAMA_MODEL: tinyllama
-          OLLAMA_URL: http://localhost:11434
+          OLLAMA_URL: http://127.0.0.1:11434
           OLLAMA_PID: ${{ env.OLLAMA_PID }}
         run: |
           echo "✍️  Generating art concept with Ollama..."

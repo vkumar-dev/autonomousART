@@ -10,8 +10,8 @@ const fs = require('fs');
 const path = require('path');
 const OllamaInference = require('./ollama-inference');
 
-const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'mistral';
+const OLLAMA_URL = process.env.OLLAMA_URL || 'http://127.0.0.1:11434';
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'tinyllama';
 const CONCEPT_FILE = path.join(__dirname, '..', 'selected-concept.json');
 const PROMPT_FILE = path.join(__dirname, '..', 'prompts', 'art-generation.txt');
 const HISTORY_FILE = path.join(__dirname, '..', 'concept-history.json');
