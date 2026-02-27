@@ -1,17 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>autonomousART - The Infinite Catalog</title>
-  <meta name="description" content="Autonomous AI-powered generative art catalog. Unique visualizations regenerated.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Poppins:wght@300;400;500&display=swap"
-    rel="stylesheet">
-
+  <title>autonomousART - Latest Generative Art</title>
+  <meta name="description" content="Autonomous AI-powered generative art. Regenerated every 4 hours.">
   <style>
     * {
       margin: 0;
@@ -19,89 +12,48 @@
       box-sizing: border-box;
     }
 
-    html,
-    body {
+    html, body {
       width: 100%;
       height: 100%;
       background: #050505;
       color: #fff;
-      font-family: 'Inter', 'Poppins', sans-serif;
-      font-size: 14px;
-      font-weight: 400;
-      overflow: hidden;
-      /* Prevent body scroll, handled by container */
+      font-family: 'Inter', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    /* Main Scrolling Container */
-    .catalog-container {
+    .container {
       width: 100%;
       height: 100vh;
-      overflow-y: scroll;
-      overflow-x: hidden;
-      scroll-snap-type: y mandatory;
-      scroll-snap-stop: always;
-      scroll-behavior: smooth;
-      overscroll-behavior-y: contain;
-      touch-action: pan-y;
-      -ms-overflow-style: none;
-      /* IE and Edge */
-      scrollbar-width: none;
-      /* Firefox */
-    }
-
-    .catalog-container::-webkit-scrollbar {
-      display: none;
-      /* Chrome, WebKit */
-    }
-
-    /* Individual Art Section */
-    .art-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       position: relative;
+      overflow: hidden;
+    }
+
+    .art-display {
       width: 100%;
-      height: 100vh;
-      scroll-snap-align: start;
+      height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
       background: #000;
-      opacity: 0.9;
-      transform: scale(0.995);
-      transition: opacity 0.45s ease, transform 0.45s ease;
-      will-change: opacity, transform;
+      position: relative;
     }
 
-    .art-section.active {
-      opacity: 1;
-      transform: scale(1);
-    }
-
-    .art-frame {
-      position: absolute;
-      top: 0;
-      left: 0;
+    iframe {
       width: 100%;
       height: 100%;
       border: none;
-      pointer-events: auto;
-      z-index: 1;
-      opacity: 0;
-      transition: opacity 1s ease-in-out;
     }
 
-    .art-frame.loaded {
-      opacity: 1;
-    }
-
-    /* Overlay UI Elements */
     .ui-overlay {
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      right: 0;
+      bottom: 0;
       pointer-events: none;
-      /* Let clicks pass through to canvas */
-      z-index: 10;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -109,1595 +61,238 @@
       background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 0%, transparent 20%, transparent 70%, rgba(0, 0, 0, 0.8) 100%);
     }
 
-    /* Top Bar */
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       pointer-events: auto;
-      /* Re-enable clicks for buttons */
+      gap: 20px;
     }
 
     .logo {
-      font-family: 'Outfit', sans-serif;
-      font-weight: 600;
       font-size: 24px;
+      font-weight: 600;
       letter-spacing: 2px;
-      text-transform: uppercase;
       background: linear-gradient(135deg, #00d4ff, #7209b7, #f72585);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      user-select: none;
+      background-clip: text;
     }
 
-    .top-buttons {
+    .buttons {
       display: flex;
-      gap: 15px;
+      gap: 12px;
     }
 
-    .glass-btn {
+    .btn {
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: #fff;
       padding: 8px 20px;
       border-radius: 30px;
-      font-family: 'Outfit', sans-serif;
-      font-weight: 400;
       font-size: 14px;
       cursor: pointer;
       transition: all 0.3s ease;
-      letter-spacing: 1px;
+      text-decoration: none;
+      display: inline-block;
     }
 
-    .glass-btn:hover {
+    .btn:hover {
       background: rgba(255, 255, 255, 0.15);
       border-color: rgba(255, 255, 255, 0.3);
       transform: translateY(-2px);
     }
 
-    .glass-btn:active {
-      transform: translateY(0);
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .glass-btn:focus-visible {
-      outline: 2px solid rgba(247, 37, 133, 0.9);
-      outline-offset: 2px;
-    }
-
-    /* Bottom Info Card */
-    .info-card {
+    .info {
       align-self: flex-start;
+      max-width: 550px;
+    }
+
+    .info-card {
       background: rgba(10, 10, 15, 0.6);
       backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 16px;
       padding: 30px;
-      max-width: 500px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-      pointer-events: auto;
-      transform: translateY(20px);
-      opacity: 0;
-      transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .art-section.active .info-card {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    .art-title {
-      font-family: 'Outfit', sans-serif;
+    .info-title {
       font-size: 36px;
       font-weight: 300;
       margin-bottom: 8px;
-      color: #fff;
       line-height: 1.1;
     }
 
-    .art-meta {
+    .info-meta {
       font-size: 13px;
       color: rgba(255, 255, 255, 0.5);
       margin-bottom: 20px;
       display: flex;
-      align-items: center;
       gap: 15px;
     }
 
-    .art-keywords {
+    .info-meta span {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .keyword {
-      font-size: 11px;
-      background: rgba(114, 9, 183, 0.2);
-      border: 1px solid rgba(114, 9, 183, 0.4);
-      color: #e0b0ff;
-      padding: 4px 12px;
-      border-radius: 20px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* Scroll View Info Overlay */
-    .scroll-info-overlay {
-      position: absolute;
-      bottom: 40px;
-      left: 40px;
-      z-index: 5;
-      pointer-events: none;
-    }
-
-    .scroll-info-title,
-    .scroll-info-meta {
-      transform: translateY(20px);
-      opacity: 0;
-      transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1s ease;
-    }
-
-    .art-section.active .scroll-info-title,
-    .art-section.active .scroll-info-meta {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    .scroll-info-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 32px;
-      font-weight: 300;
-      color: #fff;
-      margin-bottom: 8px;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    }
-
-    .scroll-info-meta {
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.7);
-      text-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
-    }
-
-    /* Scroll Indicator */
-    .scroll-indicator {
-      position: fixed;
-      right: 40px;
-      top: 50%;
-      transform: translateY(-50%);
-      display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 10px;
-      pointer-events: none;
-      z-index: 20;
+      gap: 5px;
     }
 
-    .scroll-dot {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      transition: all 0.3s ease;
-    }
-
-    .scroll-dot.active {
-      height: 20px;
-      border-radius: 4px;
-      background: #f72585;
-      box-shadow: 0 0 10px rgba(247, 37, 133, 0.5);
-    }
-
-    /* Loading state */
-    .loading-pulse {
-      position: absolute;
+    .loading {
+      position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: rgba(114, 9, 183, 0.5);
-      animation: pulse 1.5s infinite ease-in-out;
-      z-index: 0;
-    }
-
-    /* Catalog List View */
-    .catalog-list-view {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #050505;
+      text-align: center;
       z-index: 100;
-      flex-direction: column;
-      overflow: hidden;
-      opacity: 0;
-      transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .catalog-list-view.active {
-      display: flex;
-      opacity: 1;
-    }
-
-    .catalog-list-header {
-      padding: 40px 60px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      flex-shrink: 0;
-    }
-
-    .catalog-list-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 28px;
-      font-weight: 300;
-      color: #fff;
-      letter-spacing: 2px;
-    }
-
-    .catalog-list-container {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding: 0 60px;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      will-change: scroll-position;
-      contain: layout style paint;
-    }
-
-    .catalog-list-container::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .catalog-list-container::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .catalog-list-container::-webkit-scrollbar-thumb {
-      background: rgba(247, 37, 133, 0.4);
-      border-radius: 3px;
-    }
-
-    .catalog-list-container::-webkit-scrollbar-thumb:hover {
-      background: rgba(247, 37, 133, 0.6);
-    }
-
-    .catalog-list-item {
-      padding: 20px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      cursor: pointer;
-      transition: opacity 0.25s ease, transform 0.25s ease, background 0.25s ease;
-      font-size: 18px;
-      color: rgba(255, 255, 255, 0.6);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: relative;
-      opacity: 0.7;
-      will-change: opacity, transform, background;
-      user-select: none;
-    }
-
-    .catalog-list-item:hover {
-      opacity: 1;
-      transform: translateX(10px);
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .catalog-list-item:active {
-      opacity: 0.95;
-      transform: translateX(8px);
-    }
-
-    .catalog-list-item.selected {
-      background: rgba(247, 37, 133, 0.08);
-      color: #fff;
-      padding-left: 30px;
-      opacity: 1;
-      transform: translateX(15px);
-    }
-
-    .catalog-list-item.selected::before {
-      content: '→';
-      position: absolute;
-      left: 0;
-      color: #f72585;
-      font-weight: bold;
-    }
-
-    @keyframes slideIn {
-      0% {
-        opacity: 0;
-        transform: translateX(-20px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .catalog-list-meta {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.4);
-    }
-
-    /* Description Modal */
-    .description-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 101;
-      pointer-events: none;
-      opacity: 0;
-    }
-
-    .description-modal.active {
-      display: block;
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .description-content {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%) scale(0.95);
-      opacity: 0;
-      max-width: 700px;
-      width: 90%;
-      max-height: 80vh;
-      background: rgba(5, 5, 5, 0.65);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 20px;
-      padding: 60px 50px;
-      overflow-y: auto;
-      z-index: 101;
-      pointer-events: auto;
-      transition: opacity 1s ease, transform 1s ease;
-      will-change: opacity, transform;
-    }
-
-    .description-modal.active .description-content {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 1;
-    }
-
-    .description-modal.hidden-by-code .description-content {
-      transform: translate(-50%, -50%) scale(0.95) translateX(-60px);
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .description-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 48px;
-      font-weight: 300;
-      margin-bottom: 20px;
-      background: linear-gradient(135deg, #00d4ff, #7209b7, #f72585);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .description-meta {
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.5);
-      margin-bottom: 40px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .description-text {
-      font-family: 'Poppins', sans-serif;
-      font-size: 16px;
-      font-weight: 300;
-      line-height: 1.85;
-      color: rgba(255, 255, 255, 0.85);
-      margin-bottom: 30px;
-      letter-spacing: 0.2px;
-    }
-
-    .description-hint {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.4);
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    /* Code Modal */
-    .code-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 102;
-      pointer-events: none;
-      opacity: 0;
-    }
-
-    .code-modal.active {
-      display: block;
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .code-content {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%) scale(0.95);
-      opacity: 0;
-      max-width: 800px;
-      width: 90%;
-      max-height: 80vh;
-      background: rgba(5, 5, 5, 0.70);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 20px;
-      padding: 60px 50px;
-      overflow-y: auto;
-      z-index: 102;
-      pointer-events: auto;
-      transition: opacity 1s ease, transform 1s ease;
-      will-change: opacity, transform;
-      outline: none;
-    }
-
-    .code-content:focus {
-      outline: none;
-    }
-
-    .code-modal.active .code-content {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 1;
-    }
-
-    .code-modal.hidden-by-code .code-content {
-      transform: translate(-50%, -50%) scale(0.95) translateX(60px);
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    /* Code view modes */
-    .code-modal.fullscreen .code-content {
-      position: fixed;
-      left: 0;
-      top: 0;
-      transform: translate(0, 0) scale(1);
-      width: 100%;
-      max-width: 100%;
-      height: 100%;
-      max-height: 100%;
-      border-radius: 0;
-      border: none;
-      padding: 60px;
-    }
-
-    .code-modal.fullscreen {
-      background: rgba(0, 0, 0, 0.3);
-    }
-
-    .code-modal.fullscreen.opacity-high {
-      background: rgba(0, 0, 0, 0.6);
-    }
-
-    .code-modal.fullscreen.opacity-higher {
-      background: rgba(0, 0, 0, 0.85);
-    }
-
-    .code-modal.fullscreen.opacity-full {
-      background: rgba(0, 0, 0, 0.95);
-    }
-
-    .code-modal.fullscreen.opacity-high .code-content {
-      background: rgba(5, 5, 5, 0.85);
-    }
-
-    .code-modal.fullscreen.opacity-higher .code-content {
-      background: rgba(5, 5, 5, 0.92);
-    }
-
-    .code-modal.fullscreen.opacity-full .code-content {
-      background: rgba(5, 5, 5, 1);
-    }
-
-    .code-header {
-      margin-bottom: 30px;
-      font-family: 'Outfit', sans-serif;
-      font-size: 22px;
-      font-weight: 400;
-      color: rgba(255, 255, 255, 0.95);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      letter-spacing: 1px;
-    }
-
-    .code-container {
-      background: rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 20px;
-      overflow-x: auto;
-      max-width: 100%;
-    }
-
-    .code-container pre {
-      margin: 0;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 15px;
-      font-weight: 400;
-      line-height: 1.8;
-      color: #a0ff00;
-      white-space: pre;
-      overflow-x: auto;
-      letter-spacing: 0.3px;
-      tab-size: 2;
-      -moz-tab-size: 2;
-    }
-
-    .code-container::-webkit-scrollbar {
-      height: 6px;
-    }
-
-    .code-container::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .code-container::-webkit-scrollbar-thumb {
-      background: rgba(160, 255, 0, 0.3);
-      border-radius: 3px;
-    }
-
-    .code-container::-webkit-scrollbar-thumb:hover {
-      background: rgba(160, 255, 0, 0.5);
-    }
-
-    .modal-close-hint {
-      margin-top: 30px;
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.4);
-    }
-
-    /* Keyboard Map Overlay */
-    .keyboard-map-toggle {
-      position: fixed;
-      bottom: 40px;
-      right: 40px;
-      width: 50px;
-      height: 50px;
-      background: rgba(247, 37, 133, 0.2);
-      border: 2px solid rgba(247, 37, 133, 0.5);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 90;
-      transition: all 0.3s ease;
-      font-size: 24px;
-      color: rgba(247, 37, 133, 0.8);
-    }
-
-    .keyboard-map-toggle:hover {
-      background: rgba(247, 37, 133, 0.3);
-      border-color: rgba(247, 37, 133, 0.8);
-      transform: scale(1.1);
-    }
-
-    .keyboard-map-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(5px);
-      z-index: 95;
-      opacity: 0;
-      transition: opacity 0.4s ease;
-    }
-
-    .keyboard-map-overlay.active {
-      display: flex;
-      opacity: 1;
-    }
-
-    .keyboard-map-grid {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 15px;
-      padding: 40px;
-      max-width: 900px;
-      max-height: 80vh;
-      overflow-y: auto;
-      background: rgba(5, 5, 5, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-    }
-
-    .keyboard-map-item {
-      position: relative;
-      width: 120px;
-      height: 120px;
-      border-radius: 8px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: all 0.3s ease;
+    .spinner {
+      width: 40px;
+      height: 40px;
       border: 2px solid rgba(255, 255, 255, 0.1);
-      background: #0a0a0a;
+      border-top: 2px solid #f72585;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
     }
 
-    .keyboard-map-item:hover {
-      border-color: rgba(247, 37, 133, 0.5);
-      transform: scale(1.05);
-      box-shadow: 0 0 20px rgba(247, 37, 133, 0.3);
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
-    .keyboard-map-item.selected {
-      border-color: #f72585;
-      box-shadow: 0 0 30px rgba(247, 37, 133, 0.6), inset 0 0 20px rgba(247, 37, 133, 0.1);
-    }
-
-    .keyboard-map-thumbnail {
-      width: 100%;
-      height: 100%;
-      opacity: 0.6;
-      transition: opacity 0.3s ease;
-    }
-
-    .keyboard-map-item:hover .keyboard-map-thumbnail {
-      opacity: 0.8;
-    }
-
-    .keyboard-map-label {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(0, 0, 0, 0.7);
-      color: #fff;
-      padding: 6px;
-      font-size: 10px;
+    .error {
+      background: rgba(255, 0, 0, 0.1);
+      border: 1px solid rgba(255, 0, 0, 0.3);
+      color: #ff6b6b;
+      padding: 20px;
+      border-radius: 12px;
       text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .keyboard-map-hint {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: rgba(255, 255, 255, 0.6);
-      font-size: 14px;
-      text-align: center;
-      width: 100%;
-    }
-
-    /* Art visibility toggle - Hidden for now */
-    .art-visibility-toggle {
-      display: none;
-    }
-
-    /* Darkened background when art is hidden */
-    .description-modal.art-hidden {
-      background: rgba(0, 0, 0, 0.95);
-    }
-
-    .code-modal.art-hidden {
-      background: rgba(0, 0, 0, 0.95);
-    }
-
-    .art-hidden .description-content {
-      background: rgba(5, 5, 5, 0.95);
-    }
-
-    .art-hidden .code-content {
-      background: rgba(5, 5, 5, 0.95);
-    }
-
-    @keyframes pulse {
-      0% {
-        transform: translate(-50%, -50%) scale(0.8);
-        opacity: 0.8;
-      }
-
-      100% {
-        transform: translate(-50%, -50%) scale(2);
-        opacity: 0;
-      }
-    }
-
-    /* Philosophy Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(5, 5, 5, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      z-index: 1000;
-      overflow-y: auto;
-      opacity: 0;
-      transition: opacity 0.4s ease;
-    }
-
-    .modal.show {
-      opacity: 1;
-    }
-
-    .modal-content {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 80px 40px;
-      position: relative;
-    }
-
-    .close-btn {
-      position: fixed;
-      top: 40px;
-      right: 40px;
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 32px;
-      cursor: pointer;
-      opacity: 0.6;
-      transition: opacity 0.3s ease;
-      font-family: inherit;
-    }
-
-    .close-btn:hover {
-      opacity: 1;
-    }
-
-    .modal h2 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 48px;
-      font-weight: 300;
-      margin-bottom: 40px;
-      background: linear-gradient(135deg, #00d4ff, #7209b7);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .modal h3 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 24px;
-      font-weight: 400;
-      margin: 40px 0 20px;
-      color: #00d4ff;
-    }
-
-    .modal p {
-      font-size: 16px;
-      line-height: 1.8;
-      color: rgba(255, 255, 255, 0.8);
-      margin-bottom: 20px;
-    }
-
-    /* Setup view message */
-    .setup-msg {
-      text-align: center;
-      padding: 100px 20px;
-      color: #fff;
-    }
-
-    @media (max-width: 768px) {
-      .ui-overlay {
-        padding: 20px;
-      }
-
-      .art-title {
-        font-size: 28px;
-      }
-
-      .info-card {
-        padding: 20px;
-      }
-
-      .scroll-indicator {
-        right: 15px;
-      }
-
-      .top-buttons .glass-btn.about-btn {
-        display: none;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .catalog-container {
-        scroll-behavior: auto;
-      }
-
-      .art-frame,
-      .info-card,
-      .catalog-list-view,
-      .description-content,
-      .code-content,
-      .art-section {
-        transition: none !important;
-        animation: none !important;
-      }
     }
   </style>
 </head>
-
 <body>
-
-  <div class="catalog-container" id="catalogContainer">
-    <div class="setup-msg" id="setupMessage">
-      <div class="loading-pulse" style="position:relative; margin:0 auto 40px;"></div>
-      <h2 style="font-family:'Outfit'">Loading the Infinite Catalog...</h2>
-    </div>
-  </div>
-
-  <div class="scroll-indicator" id="scrollIndicator">
-    <!-- Dots added dynamically -->
-  </div>
-
-  <!-- Philosophy Modal -->
-  <div class="modal" id="philosophyModal">
-    <button class="close-btn" onclick="togglePhilosophy()">×</button>
-    <div class="modal-content">
-      <h2>The Philosophy</h2>
-      <div id="philosophyContent">
-        <!-- Content parsed dynamically or fallback -->
-        <h3>A New Frontier</h3>
-        <p>autonomousART is not just a gallery. It is an entrypoint into a new world where artificial intelligence and
-          creative expression collide in beautiful, unexpected ways.</p>
-
-        <h3>Infinite Possibilities</h3>
-        <p>Every artwork here is born from code—pure, elegant, mathematical code. We explore the latent space of
-          generative algorithms, creating million-to-one variations that live entirely in the browser.</p>
-
-        <h3>Performance as a Feature</h3>
-        <p>This catalog lazily loads complex Canvas and WebGL contexts as you scroll. Only the art you see is rendered,
-          keeping the experience buttery smooth and computationally pure.</p>
+  <div class="container">
+    <div class="art-display" id="artDisplay">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Loading latest artwork...</p>
       </div>
     </div>
-  </div>
 
-  <!-- Catalog List View -->
-  <div class="catalog-list-view" id="catalogListView">
-    <div class="catalog-list-header">
-      <div class="catalog-list-title">A_ART Catalog</div>
-      <button class="glass-btn about-btn" onclick="togglePhilosophy()">Philosophy</button>
-    </div>
-    <div class="catalog-list-container" id="catalogListContainer">
-      <!-- Items added dynamically -->
-    </div>
-  </div>
-
-  <!-- Description Modal -->
-  <div class="description-modal" id="descriptionModal">
-    <div class="description-content">
-      <button class="art-visibility-toggle" id="descriptionToggleArt" onclick="toggleDescriptionArt()">Show Art</button>
-      <h1 class="description-title" id="descriptionTitle">Artwork Title</h1>
-      <div class="description-meta" id="descriptionMeta">
-        <!-- Metadata shown here -->
+    <div class="ui-overlay">
+      <div class="top-bar">
+        <div class="logo">autonomousART</div>
+        <div class="buttons">
+          <a href="gallery.html" class="btn">View Gallery</a>
+          <a href="#" class="btn" onclick="location.reload(); return false;">Refresh</a>
+        </div>
       </div>
-      <div class="description-text" id="descriptionText">
-        <!-- Generated description -->
-      </div>
-      <div class="description-hint">Press ↓ Down to view code | Press ← Left to go back</div>
-    </div>
-  </div>
 
-  <!-- Code Modal -->
-  <div class="code-modal" id="codeModal">
-    <div class="code-content" tabindex="0">
-      <div class="code-header">
-        <span>Source Code</span>
-        <button class="art-visibility-toggle" id="codeToggleArt" onclick="toggleCodeArt()">Show Art</button>
+      <div class="info">
+        <div class="info-card">
+          <div class="info-title" id="artTitle">Loading...</div>
+          <div class="info-meta">
+            <span>🤖 AI Generated</span>
+            <span id="artDate">Today</span>
+          </div>
+          <p id="artDesc" style="font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, 0.7);">
+            This artwork was autonomously generated using Ollama-based AI inference.
+          </p>
+        </div>
       </div>
-      <div class="code-container">
-        <pre id="codeContent"><!-- Code shown here --></pre>
-      </div>
-      <div class="modal-close-hint">Press ← Left to go back to description | Press ← Left again to close</div>
-    </div>
-  </div>
-
-  <!-- Keyboard Map Toggle Button -->
-  <div class="keyboard-map-toggle" id="keyboardMapToggle" onclick="toggleKeyboardMap()">🗺️</div>
-
-  <!-- Keyboard Map Overlay -->
-  <div class="keyboard-map-overlay" id="keyboardMapOverlay">
-    <div class="keyboard-map-hint">Press ESC or click background to close</div>
-    <div class="keyboard-map-grid" id="keyboardMapGrid">
-      <!-- Thumbnails added dynamically -->
     </div>
   </div>
 
   <script>
-    const CATALOG_CONTAINER = document.getElementById('catalogContainer');
-    const SCROLL_INDICATOR = document.getElementById('scrollIndicator');
-    let artworks = [];
-
-    // Total number of indicators to show on screen to prevent overcrowding
-    const MAX_INDICATORS = 20;
-
-    // State management
-    let currentView = 'scroll'; // 'scroll', 'catalog', 'description', 'code'
-    let selectedIndex = 0;
-    let artworkMetadata = {}; // Cache artwork info
-    let codeViewMode = 1; // 1: centered, 2: fullscreen 70%, 3: fullscreen 85%, 4: fullscreen 100%
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let isScrollTransitioning = false;
-    let touchStartY = 0;
-
-    function getScrollBehavior() {
-      return prefersReducedMotion ? 'auto' : 'smooth';
-    }
-
-    function navigateScroll(direction) {
-      if (isScrollTransitioning || currentView !== 'scroll') return;
-
-      isScrollTransitioning = true;
-      CATALOG_CONTAINER.scrollBy({
-        top: window.innerHeight * 0.85 * direction,
-        behavior: getScrollBehavior()
-      });
-
-      const releaseDelay = prefersReducedMotion ? 120 : 420;
-      setTimeout(() => {
-        isScrollTransitioning = false;
-      }, releaseDelay);
-    }
-
-    // Parse artwork metadata from filename
-    function parseArtworkMetadata(filename) {
-      const bareName = filename.split('/').pop().replace('.html', '');
-      const match = bareName.match(/^(\d{8})-(\d{6})-(.+)$/);
-
-      let title = "Generative Artwork";
-      let dateStr = "Recent";
-
-      if (match) {
-        const datePart = match[1];
-        const timePart = match[2];
-        title = match[3].replace(/-/g, ' ');
-
-        const d = new Date(
-          datePart.substring(0, 4),
-          datePart.substring(4, 6) - 1,
-          datePart.substring(6, 8),
-          timePart.substring(0, 2),
-          timePart.substring(2, 4)
-        );
-        dateStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-      }
-
-      title = title.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      return { title, dateStr };
-    }
-
-    // Generate AI description based on artwork title
-    function generateDescription(title) {
-      const descriptions = {
-        'cellular-awakening': 'Witness the birth of digital consciousness. Cellular automata emerge and evolve in real-time, creating patterns of unexpected complexity from simple rules.',
-        'chaos-fractals': 'Journey into mathematical chaos. Self-similar fractals unfold across infinite scales, revealing the hidden geometry beneath seemingly random systems.',
-        'particle-entropy': 'Observe entropy in motion. Particles disperse and recombine, visualizing the arrow of time and the tendency toward disorder.',
-        'recursive-spirals': 'Recursion made visible. Spirals nest within spirals, building complexity through simple repetition and elegant mathematical relationships.',
-        'perlin-dream': 'Noise becomes nature. Perlin noise creates organic, flowing landscapes that feel alive and responsive to the passage of time.',
-        'geometric-genesis': 'The birth of form. Geometric shapes assemble and transform, exploring the space between order and chaos.',
-        'gravity-wells': 'Forces of attraction visualized. Watch as particles orbit and dance around invisible wells of gravity.',
-        'vector-flow': 'Currents of possibility. Vector fields guide particles through space, creating hypnotic patterns of motion.',
-        'bloom-effect': 'Light and bloom. Glowing particles interact with light diffusion, creating ethereal and dreamlike visuals.',
-        'chromatic-waves': 'Color in motion. Waves of color ripple and interfere, creating patterns of visual harmony.',
-      };
-
-      const lowerTitle = title.toLowerCase().replace(/\s+/g, '-');
-      for (const [key, desc] of Object.entries(descriptions)) {
-        if (lowerTitle.includes(key)) {
-          return desc;
-        }
-      }
-      return 'A unique generative artwork created through algorithmic processes, exploring the boundaries between mathematics and art.';
-    }
-
-    // Fetch artwork HTML to extract code
-    async function fetchArtworkCode(filename) {
+    async function loadLatestArt() {
       try {
-        const res = await fetch(`artworks/${filename}`);
-        if (!res.ok) return 'Code not available';
-        const html = await res.text();
-        
-        // Extract script content
-        const scriptMatch = html.match(/<script[^>]*>([\s\S]*?)<\/script>/);
-        if (scriptMatch) {
-          let code = scriptMatch[1].trim();
-          
-          // Beautiful code formatting
-          code = beautifyCode(code);
-          return code;
-        }
-        return 'No code found';
-      } catch (e) {
-        return 'Error loading code';
-      }
-    }
-
-    // Beautify and format code with proper indentation (optimized)
-    function beautifyCode(code) {
-      let indentLevel = 0;
-      let result = [];
-      
-      const lines = code.split('\n');
-      
-      for (let line of lines) {
-        line = line.trim();
-        if (!line) continue;
-        
-        // Check for closing braces at start
-        if (line.startsWith('}') || line.startsWith(')')) {
-          indentLevel = Math.max(0, indentLevel - 1);
-        }
-        
-        result.push('  '.repeat(indentLevel) + line);
-        
-        // Count braces in one pass
-        let openCount = 0, closeCount = 0;
-        for (let char of line) {
-          if (char === '{') openCount++;
-          else if (char === '}') closeCount++;
-        }
-        indentLevel += openCount - closeCount;
-      }
-      
-      // Single pass for formatting
-      return result.join('\n')
-        .replace(/\)\s*{/g, ') {\n')
-        .replace(/;\s*(?![\n$])/gm, ';\n')
-        .replace(/\n\n+/g, '\n');
-    }
-
-    // View management functions
-    function showCatalogList() {
-      currentView = 'catalog';
-      document.getElementById('catalogListView').classList.add('active');
-      updateCatalogListSelection();
-    }
-
-    function hideCatalogList() {
-      currentView = 'scroll';
-      document.getElementById('catalogListView').classList.remove('active');
-      scrollToArtwork(selectedIndex);
-    }
-
-    function updateCatalogListSelection() {
-      const items = document.querySelectorAll('.catalog-list-item');
-      items.forEach((item, idx) => {
-        if (idx === selectedIndex) {
-          item.classList.add('selected');
-          item.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else {
-          item.classList.remove('selected');
-        }
-      });
-    }
-
-    function scrollToArtwork(index) {
-      const section = document.querySelector(`[data-index="${index}"]`);
-      if (section) {
-        section.scrollIntoView({ behavior: getScrollBehavior(), block: 'start' });
-      }
-    }
-
-    let artHidden = false;
-
-    function toggleDescriptionArt() {
-      artHidden = !artHidden;
-      const modal = document.getElementById('descriptionModal');
-      const btn = document.getElementById('descriptionToggleArt');
-      if (artHidden) {
-        modal.classList.add('art-hidden');
-        btn.textContent = 'Show Art';
-      } else {
-        modal.classList.remove('art-hidden');
-        btn.textContent = 'Hide Art';
-      }
-    }
-
-    function toggleCodeArt() {
-      artHidden = !artHidden;
-      const modal = document.getElementById('codeModal');
-      const btn = document.getElementById('codeToggleArt');
-      if (artHidden) {
-        modal.classList.add('art-hidden');
-        btn.textContent = 'Show Art';
-      } else {
-        modal.classList.remove('art-hidden');
-        btn.textContent = 'Hide Art';
-      }
-    }
-
-    async function showDescription() {
-      currentView = 'description';
-      const filename = artworks[selectedIndex];
-      const metadata = artworkMetadata[selectedIndex];
-      
-      document.getElementById('descriptionTitle').textContent = metadata.title;
-      document.getElementById('descriptionMeta').textContent = `${selectedIndex + 1} / ${artworks.length} • ${metadata.dateStr}`;
-      document.getElementById('descriptionText').textContent = generateDescription(metadata.title);
-      
-      const modal = document.getElementById('descriptionModal');
-      modal.classList.add('active');
-      
-      // Reset art visibility when showing description
-      if (artHidden) {
-        artHidden = false;
-        modal.classList.remove('art-hidden');
-        document.getElementById('descriptionToggleArt').textContent = 'Hide Art';
-      }
-    }
-
-    function hideDescription() {
-      document.getElementById('descriptionModal').classList.remove('active');
-      currentView = 'scroll';
-    }
-
-    async function showCode() {
-      currentView = 'code';
-      const filename = artworks[selectedIndex];
-      const code = await fetchArtworkCode(filename);
-      document.getElementById('codeContent').textContent = code;
-      
-      const codeModal = document.getElementById('codeModal');
-      const codeContentDiv = document.querySelector('.code-content');
-      const descModal = document.getElementById('descriptionModal');
-      
-      // Hide description, show code with scale/fade animation
-      descModal.classList.add('hidden-by-code');
-      codeModal.classList.add('active');
-      codeModal.classList.add('hidden-by-code'); // For initial state
-      setTimeout(() => {
-        codeModal.classList.remove('hidden-by-code');
-        // Focus the code content so keyboard events work immediately
-        codeContentDiv.focus();
-      }, 10);
-      
-      // Reset art visibility when showing code
-      if (artHidden) {
-        artHidden = false;
-        codeModal.classList.remove('art-hidden');
-        document.getElementById('codeToggleArt').textContent = 'Hide Art';
-      }
-    }
-
-    function cycleCodeViewMode() {
-      const codeModal = document.getElementById('codeModal');
-      codeViewMode = (codeViewMode % 4) + 1;
-      
-      codeModal.classList.remove('fullscreen', 'opacity-high', 'opacity-higher', 'opacity-full');
-      
-      if (codeViewMode === 2) {
-        codeModal.classList.add('fullscreen');
-      } else if (codeViewMode === 3) {
-        codeModal.classList.add('fullscreen', 'opacity-high');
-      } else if (codeViewMode === 4) {
-        codeModal.classList.add('fullscreen', 'opacity-higher');
-      } else if (codeViewMode === 5) {
-        codeModal.classList.add('fullscreen', 'opacity-full');
-        codeViewMode = 5; // Allow going to 5, then reset to 1
-      } else {
-        // Reset to centered
-        codeViewMode = 1;
-      }
-    }
-
-    function hideCode() {
-      const codeModal = document.getElementById('codeModal');
-      const descModal = document.getElementById('descriptionModal');
-      
-      // Reset code view mode when hiding
-      codeViewMode = 1;
-      codeModal.classList.remove('fullscreen', 'opacity-high', 'opacity-higher', 'opacity-full');
-      
-      // Hide code, show description
-      codeModal.classList.add('hidden-by-code');
-      descModal.classList.remove('hidden-by-code');
-      
-      setTimeout(() => {
-        codeModal.classList.remove('active');
-        currentView = 'description';
-      }, 1000);
-    }
-
-    // Keyboard map functions
-    function toggleKeyboardMap() {
-      const overlay = document.getElementById('keyboardMapOverlay');
-      overlay.classList.toggle('active');
-    }
-
-    function buildKeyboardMap() {
-      const grid = document.getElementById('keyboardMapGrid');
-      
-      // Use fragment to batch DOM operations
-      const fragment = document.createDocumentFragment();
-
-      artworks.forEach((filename, index) => {
-        const item = document.createElement('div');
-        item.className = 'keyboard-map-item';
-        if (index === selectedIndex) item.classList.add('selected');
-        item.dataset.index = index;
-        
-        const metadata = artworkMetadata[index];
-        const hue = (index * 17) % 360;
-        
-        // Build HTML as string, insert once
-        item.innerHTML = `
-          <div class="keyboard-map-thumbnail" style="background: linear-gradient(135deg, hsl(${hue}, 100%, 30%), hsl(${hue + 60}, 100%, 50%))"></div>
-          <div class="keyboard-map-label">${metadata.title}</div>
-        `;
-        
-        // Event delegation - single listener on grid
-        item.addEventListener('click', handleMapItemClick);
-        
-        fragment.appendChild(item);
-      });
-      
-      grid.innerHTML = '';
-      grid.appendChild(fragment);
-    }
-
-    function handleMapItemClick(e) {
-      const index = parseInt(e.currentTarget.dataset.index);
-      selectedIndex = index;
-      updateKeyboardMapSelection();
-      hideCatalogList();
-      document.getElementById('keyboardMapOverlay').classList.remove('active');
-      scrollToArtwork(selectedIndex);
-    }
-
-    function updateKeyboardMapSelection() {
-      const items = document.querySelectorAll('.keyboard-map-item');
-      items.forEach((item, idx) => {
-        if (idx === selectedIndex) {
-          item.classList.add('selected');
-          item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        } else {
-          item.classList.remove('selected');
-        }
-      });
-    }
-
-    // Close keyboard map with ESC
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        document.getElementById('keyboardMapOverlay').classList.remove('active');
-      }
-    });
-
-    // Close keyboard map when clicking background
-    document.getElementById('keyboardMapOverlay').addEventListener('click', (e) => {
-      if (e.target.id === 'keyboardMapOverlay') {
-        document.getElementById('keyboardMapOverlay').classList.remove('active');
-      }
-    });
-
-    // Keyboard event handler
-    document.addEventListener('keydown', (e) => {
-      if (currentView === 'scroll') {
-        if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-          showCatalogList();
-        } else if (e.key === 'ArrowRight') {
-          e.preventDefault();
-          showDescription();
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          navigateScroll(-1);
-        } else if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          navigateScroll(1);
-        }
-      } else if (currentView === 'catalog') {
-        if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          if (selectedIndex > 0) {
-            selectedIndex--;
-            updateCatalogListSelection();
-          }
-        } else if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          if (selectedIndex < artworks.length - 1) {
-            selectedIndex++;
-            updateCatalogListSelection();
-          }
-        } else if (e.key === 'ArrowRight') {
-          e.preventDefault();
-          hideCatalogList();
-          showDescription();
-        } else if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-          hideCatalogList();
-        }
-      } else if (currentView === 'description') {
-        if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-          hideDescription();
-        } else if (e.key === 'ArrowRight') {
-          e.preventDefault();
-          showCode();
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          const descContent = document.querySelector('.description-content');
-          descContent.scrollBy({ top: -100, behavior: 'smooth' });
-        } else if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          const descContent = document.querySelector('.description-content');
-          descContent.scrollBy({ top: 100, behavior: 'smooth' });
-        }
-      } else if (currentView === 'code') {
-        if (e.key === 'ArrowLeft') {
-          e.preventDefault();
-          hideCode();
-        } else if (e.key === 'ArrowRight') {
-          e.preventDefault();
-          cycleCodeViewMode();
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          const codeContent = document.querySelector('.code-content');
-          codeContent.scrollBy({ top: -100, behavior: 'smooth' });
-        } else if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          const codeContent = document.querySelector('.code-content');
-          codeContent.scrollBy({ top: 100, behavior: 'smooth' });
-        } else if (e.key === 'Escape') {
-          e.preventDefault();
-          hideCode();
-          hideDescription();
-        }
-      }
-    });
-
-    async function initCatalog() {
-      try {
+        // Fetch artwork list
         const response = await fetch('artworks-list.json');
-        if (!response.ok) throw new Error('Failed to fetch list');
-        artworks = await response.json();
+        if (!response.ok) throw new Error('Failed to fetch artwork list');
 
+        const artworks = await response.json();
         if (artworks.length === 0) throw new Error('No artworks found');
 
-        renderSections();
-        setupObserver();
-        buildKeyboardMap();
-
-      } catch (err) {
-        document.getElementById('setupMessage').innerHTML = `
-          <h2 style="font-family:'Outfit'; color:#f72585;">Error Loading Catalog</h2>
-          <p style="margin-top:20px; opacity:0.7;">${err.message}</p>
-          <button class="glass-btn" style="margin-top:30px;" onclick="location.reload()">Retry</button>
-        `;
-      }
-    }
-
-    function renderSections() {
-      CATALOG_CONTAINER.innerHTML = '';
-      SCROLL_INDICATOR.innerHTML = '';
-      artworkMetadata = {};
-
-      const numIndicators = Math.min(artworks.length, MAX_INDICATORS);
-      const catalogListContainer = document.getElementById('catalogListContainer');
-      catalogListContainer.innerHTML = '';
-
-      artworks.forEach((filename, index) => {
+        // Latest is first in list
+        const latestFile = artworks[0];
+        
         // Parse metadata from filename
-        const metadata = parseArtworkMetadata(filename);
-        artworkMetadata[index] = metadata;
-        const { title, dateStr } = metadata;
+        // Format: YYYYMMDD-HHMMSS-title.html
+        const parts = latestFile.replace('.html', '').split('-');
+        const dateStr = parts[0];
+        const timeStr = parts[1];
+        const title = parts.slice(2).join(' ').replace(/([a-z])([A-Z])/g, '$1 $2')
+          .split(' ')
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
 
-        // Keywords
-        const keywords = title.split(' ').filter(w => w.length > 3).slice(0, 4);
-
-        // Add to catalog list
-        const listItem = document.createElement('div');
-        listItem.className = 'catalog-list-item';
-        listItem.dataset.index = index;
-        listItem.innerHTML = `
-          <span>${title}</span>
-          <span class="catalog-list-meta">${dateStr}</span>
-        `;
-        listItem.addEventListener('click', () => {
-          selectedIndex = index;
-          hideCatalogList();
-          showDescription();
+        // Format date
+        const year = dateStr.substring(0, 4);
+        const month = dateStr.substring(4, 6);
+        const day = dateStr.substring(6, 8);
+        const date = new Date(year, parseInt(month) - 1, day);
+        const dateFormatted = date.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
         });
-        catalogListContainer.appendChild(listItem);
 
-        // Build HTML
-        const section = document.createElement('div');
-        section.className = 'art-section';
-        section.dataset.index = index;
-        section.dataset.filename = filename;
+        // Update UI
+        document.getElementById('artTitle').textContent = title;
+        document.getElementById('artDate').textContent = dateFormatted;
+        
+        // Load artwork in iframe
+        const display = document.getElementById('artDisplay');
+        display.innerHTML = `<iframe src="artworks/${latestFile}" style="opacity: 0; transition: opacity 1s ease-in-out;"></iframe>
+          <div class="ui-overlay">
+            <div class="top-bar">
+              <div class="logo">autonomousART</div>
+              <div class="buttons">
+                <a href="gallery.html" class="btn">View Gallery</a>
+                <a href="#" class="btn" onclick="location.reload(); return false;">Refresh</a>
+              </div>
+            </div>
 
-        section.innerHTML = `
-          <div class="loading-pulse"></div>
-          <!-- iframe injected lazily -->
-          <div class="iframe-container" style="position:absolute; width:100%; height:100%; top:0; left:0; z-index:1;"></div>
-          
-          <div class="scroll-info-overlay">
-            <div class="scroll-info-title">${title}</div>
-            <div class="scroll-info-meta">${index + 1} / ${artworks.length}</div>
+            <div class="info">
+              <div class="info-card">
+                <div class="info-title">${title}</div>
+                <div class="info-meta">
+                  <span>🤖 AI Generated</span>
+                  <span>${dateFormatted}</span>
+                </div>
+                <p style="font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, 0.7);">
+                  This artwork was autonomously generated using Ollama-based AI inference. Every generation is unique.
+                </p>
+              </div>
+            </div>
+          </div>`;
+
+        // Fade in iframe
+        setTimeout(() => {
+          const iframe = display.querySelector('iframe');
+          if (iframe) iframe.style.opacity = '1';
+        }, 100);
+
+      } catch (error) {
+        document.getElementById('artDisplay').innerHTML = `
+          <div class="ui-overlay" style="justify-content: center; align-items: center;">
+            <div class="error">
+              <h2>Unable to load artwork</h2>
+              <p>${error.message}</p>
+              <button class="btn" style="margin-top: 20px; pointer-events: auto;" onclick="location.reload()">
+                Retry
+              </button>
+            </div>
           </div>
         `;
-
-        CATALOG_CONTAINER.appendChild(section);
-      });
-
-      // Setup indicators
-      for (let i = 0; i < numIndicators; i++) {
-        const dot = document.createElement('div');
-        dot.className = i === 0 ? 'scroll-dot active' : 'scroll-dot';
-        SCROLL_INDICATOR.appendChild(dot);
       }
     }
 
-    // Lazy load logic using IntersectionObserver
-    function setupObserver() {
-      const options = {
-        root: CATALOG_CONTAINER,
-        rootMargin: '100% 0px', // Load 1 viewport above/below
-        threshold: 0.1
-      };
-
-      const viewportOptions = {
-        root: CATALOG_CONTAINER,
-        rootMargin: '0px',
-        threshold: 0.6 // Element is mostly in view
-      };
-
-      // Handles loading/unloading
-      const loadObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          const container = entry.target.querySelector('.iframe-container');
-          const filename = entry.target.dataset.filename;
-
-          if (entry.isIntersecting) {
-            // Load if not loaded
-            if (!container.innerHTML) {
-              container.innerHTML = `<iframe src="artworks/${filename}" class="art-frame loaded"></iframe>`;
-            }
-          } else {
-            // Unload to save memory/CPU
-            if (container.innerHTML) {
-              container.innerHTML = '';
-            }
-          }
-        });
-      }, options);
-
-      // Handles active state animation and scroll indicators
-      const activeObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('active');
-
-            // Update dot indicator
-            const idx = parseInt(entry.target.dataset.index);
-            updateIndicator(idx);
-          } else {
-            entry.target.classList.remove('active');
-          }
-        });
-      }, viewportOptions);
-
-      document.querySelectorAll('.art-section').forEach(section => {
-        loadObserver.observe(section);
-        activeObserver.observe(section);
-      });
-    }
-
-    function updateIndicator(index) {
-      const dots = document.querySelectorAll('.scroll-dot');
-      if (dots.length === 0) return;
-
-      dots.forEach(d => d.classList.remove('active'));
-
-      // Map index to dot
-      const mappedIndex = Math.floor((index / artworks.length) * dots.length);
-      if (dots[mappedIndex]) {
-        dots[mappedIndex].classList.add('active');
-      }
-    }
-
-    // Philosophy Modal Logic
-    const modal = document.getElementById('philosophyModal');
-    function togglePhilosophy() {
-      if (modal.style.display === 'block') {
-        modal.classList.remove('show');
-        setTimeout(() => modal.style.display = 'none', 400);
-      } else {
-        modal.style.display = 'block';
-        // forced reflow
-        void modal.offsetWidth;
-        modal.classList.add('show');
-        loadPhilosophyMarkdown();
-      }
-    }
-
-    // Try to load full PHILOSOPHY.md
-    async function loadPhilosophyMarkdown() {
-      try {
-        const contentDiv = document.getElementById('philosophyContent');
-        if (contentDiv.dataset.loaded) return;
-
-        const res = await fetch('PHILOSOPHY.md');
-        if (res.ok) {
-          let text = await res.text();
-          let html = text
-            .replace(/^# (.*)/gm, '') // Remove main title
-            .replace(/^## (.*)/gm, '<h3>$1</h3>')
-            .replace(/^### (.*)/gm, '<h3 style="color:#f72585; font-size:20px;">$1</h3>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/- (.*)/g, '<li>$1</li>')
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/^([A-Za-z].*)/gm, '<p>$1</p>');
-
-          contentDiv.innerHTML = html;
-          contentDiv.dataset.loaded = "true";
-        }
-      } catch (e) {
-        // keep fallback
-      }
-    }
-
-    // Start
-    CATALOG_CONTAINER.addEventListener('wheel', (e) => {
-      if (currentView !== 'scroll') return;
-      if (Math.abs(e.deltaY) < 10) return;
-      e.preventDefault();
-      navigateScroll(e.deltaY > 0 ? 1 : -1);
-    }, { passive: false });
-
-    CATALOG_CONTAINER.addEventListener('touchstart', (e) => {
-      if (currentView !== 'scroll') return;
-      touchStartY = e.touches[0].clientY;
-    }, { passive: true });
-
-    CATALOG_CONTAINER.addEventListener('touchmove', (e) => {
-      if (currentView !== 'scroll') return;
-      if (isScrollTransitioning) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-
-    CATALOG_CONTAINER.addEventListener('touchend', (e) => {
-      if (currentView !== 'scroll') return;
-      const deltaY = touchStartY - e.changedTouches[0].clientY;
-      if (Math.abs(deltaY) < 48) return;
-      navigateScroll(deltaY > 0 ? 1 : -1);
-    }, { passive: true });
-
-    initCatalog();
+    // Load when DOM is ready
+    document.addEventListener('DOMContentLoaded', loadLatestArt);
   </script>
 </body>
-
 </html>
