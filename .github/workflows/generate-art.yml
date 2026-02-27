@@ -1,55 +1,161 @@
-name: Generate Art
+name: Generate Art with Ollama
 
 on:
+  schedule:
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
   push:
     branches: [ master ]
     paths:
       - 'package.json'
-  workflow_dispatch:
-  schedule:
-    - cron: '0 */4 * * *'
+
+permissions:
+  contents: write
 
 jobs:
-  generate:
+  generate-art:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install Node.js dependencies
+        run: |
+          npm install
 
-      - name: Generate concept with Ollama
-        run: node scripts/ollama-concept-generator.js
+      - name: Install Ollama
+        run: |
+          echo "📦 Installing Ollama..."
+          curl -fsSL https://ollama.ai/install.sh | sh
+          which ollama
+          echo "✅ Ollama installed"
+
+      - name: Start Ollama service
+        run: |
+          echo "🚀 Starting Ollama service..."
+          # Start ollama in background with output redirected, save PID for later
+          nohup ollama serve > /tmp/ollama.log 2>&1 &
+          OLLAMA_PID=$!
+          echo "OLLAMA_PID=$OLLAMA_PID" >> $GITHUB_ENV
+          echo "Ollama PID: $OLLAMA_PID"
+          
+          # Wait for service to be ready (longer timeout)
+          for i in {1..60}; do
+            if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+              echo "✅ Ollama service ready at $(date)"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "❌ Ollama failed to start after 60 attempts"
+              echo "Last 50 lines of log:"
+              tail -50 /tmp/ollama.log
+              exit 1
+            fi
+            echo "⏳ Waiting for Ollama... ($i/60 at $(date))"
+            sleep 1
+          done
+
+      - name: Pull Ollama model
+        run: |
+          echo "📥 Pulling model..."
+          RETRIES=3
+          for attempt in $(seq 1 $RETRIES); do
+            echo "Attempt $attempt/$RETRIES..."
+            if timeout 600 ollama pull mistral; then
+              echo "✅ Mistral model pulled successfully"
+              break
+            fi
+            if [ $attempt -eq $RETRIES ]; then
+              echo "⚠️  Failed to pull mistral, trying tinyllama..."
+              timeout 300 ollama pull tinyllama || true
+            fi
+            sleep 5
+          done
+          
+          echo "📋 Available models:"
+          ollama list
+          
+          echo "🏥 Health check..."
+          curl -s http://localhost:11434/api/tags | head -20
+
+      - name: Pre-generation health check
+        run: |
+          echo "🏥 Checking Ollama health before generation..."
+          echo "Checking service..."
+          curl -v http://localhost:11434/api/tags 2>&1 | head -30
+          
+          echo ""
+          echo "Checking process..."
+          ps aux | grep ollama | grep -v grep || echo "⚠️  Ollama process not found!"
+          
+          echo ""
+          echo "Checking logs..."
+          tail -20 /tmp/ollama.log
+
+      - name: Generate art concept with Ollama
+        timeout-minutes: 15
         env:
-          OLLAMA_URL: ${{ secrets.OLLAMA_URL }}
-          OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL }}
+          OLLAMA_MODEL: mistral
+          OLLAMA_URL: http://localhost:11434
+        run: |
+          echo "✍️  Generating art concept with Ollama..."
+          timeout 600 node scripts/ollama-concept-generator.js || EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 124 ]; then
+            echo "❌ Concept generation failed"
+            exit 1
+          fi
+          echo "✅ Concept generation complete"
 
       - name: Generate artwork
-        run: node scripts/art-generator.js
+        run: |
+          echo "🎨 Generating artwork..."
+          node scripts/art-generator.js
+          echo "✅ Artwork generation complete"
 
       - name: Build gallery index
-        run: node scripts/build-gallery.js
+        run: |
+          echo "📋 Building gallery index..."
+          node scripts/build-gallery.js
+          echo "✅ Gallery index built"
 
       - name: Configure Git
         run: |
-          git config user.name "autonomousART Bot"
-          git config user.email "bot@autonomousart.local"
+          git config --global user.name 'autonomousART Bot'
+          git config --global user.email 'autonomousart@github-actions.local'
 
-      - name: Commit and push
+      - name: Commit and push artwork (prevent recursive trigger)
         run: |
-          if git status --porcelain | grep -q "artworks/"; then
-            git add artworks/ artworks-list.json concept-history.json
-            git commit -m "🎨 Auto-generated artwork: $(date -u +%Y-%m-%d) [skip ci]"
-            git push origin master
-          else
-            echo "No new artworks to commit"
+          git add artworks/ artworks-list.json concept-history.json
+          
+          if git diff --staged --quiet; then
+            echo "ℹ️  No changes to commit"
+            exit 0
           fi
+          
+          # Use [skip ci] to prevent re-triggering
+          git commit -m "🎨 Auto-generated artwork: $(date -u +%Y-%m-%d) [skip ci]"
+          
+          if git push origin master; then
+            echo "✅ Artwork committed and pushed"
+          else
+            echo "⚠️  Push failed (may need to pull first)"
+            git pull --rebase origin master
+            git push origin master
+          fi
+
+      - name: Show summary
+        if: always()
+        run: |
+          echo "📊 Workflow Summary:"
+          echo "   Model: mistral"
+          echo "   Service: Ollama"
+          echo "   Status: Complete"

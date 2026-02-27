@@ -3,11 +3,12 @@
 /**
  * Ollama Concept Generator for autonomousART
  * Uses local Ollama instance to generate unique art concepts
+ * NO FALLBACK - Only real AI-generated concepts or failure
  */
 
 const fs = require('fs');
 const path = require('path');
-const fetch = require('node-fetch');
+const OllamaInference = require('./ollama-inference');
 
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'mistral';
@@ -40,90 +41,6 @@ const EMOTIONAL_TONES = [
   'Thought-provoking',
   'Surreal and dreamlike'
 ];
-
-class OllamaConceptGenerator {
-  constructor() {
-    this.baseUrl = OLLAMA_URL;
-    this.model = OLLAMA_MODEL;
-    this.timeout = 600000; // 10 minutes
-  }
-
-  async generate(prompt, options = {}) {
-    const {
-      temperature = 0.8,
-      topP = 0.9,
-      topK = 40,
-      numPredict = 1500,
-      verbose = true
-    } = options;
-
-    try {
-      if (verbose) {
-        console.log(`📡 Connecting to Ollama at ${this.baseUrl}...`);
-        console.log(`🤖 Model: ${this.model}`);
-      }
-
-      const response = await fetch(`${this.baseUrl}/api/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: this.model,
-          prompt: prompt,
-          stream: false,
-          options: {
-            temperature,
-            top_p: topP,
-            top_k: topK,
-            num_predict: numPredict
-          }
-        }),
-        timeout: this.timeout
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.response) {
-        throw new Error('Empty response from Ollama');
-      }
-
-      if (verbose) {
-        console.log('✅ Concept generated successfully');
-      }
-
-      return {
-        success: true,
-        content: data.response,
-        model: data.model,
-        tokens: data.eval_count || 0
-      };
-    } catch (error) {
-      if (verbose) {
-        console.error('❌ Ollama generation failed:', error.message);
-      }
-
-      return {
-        success: false,
-        error: error.message,
-        content: null
-      };
-    }
-  }
-
-  async isAvailable() {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/tags`, {
-        timeout: 5000
-      });
-      return response.ok;
-    } catch (error) {
-      return false;
-    }
-  }
-}
 
 function getConceptHistory() {
   if (!fs.existsSync(HISTORY_FILE)) {
@@ -189,23 +106,29 @@ function parseConceptResponse(response) {
     if (toneMatch) concept.tone = toneMatch[1].trim().replace(/^["']|["']$/g, '');
 
   } catch (error) {
-    console.warn('Fallback: Using structured data');
+    console.warn('⚠️  Warning: Could not fully parse response, using defaults');
   }
 
   return concept;
 }
 
 async function generateConceptWithOllama() {
-   console.log('🎨 Generating art concept with Ollama...\n');
+  console.log('🎨 Generating art concept with Ollama...\n');
 
-   const generator = new OllamaConceptGenerator();
+  const inference = new OllamaInference(OLLAMA_URL, OLLAMA_MODEL);
 
-   // Check if Ollama is available
-   console.log('🔍 Checking Ollama availability...');
-   const available = await generator.isAvailable();
-   if (!available) {
-     throw new Error(`❌ CRITICAL: Ollama service is not available at ${OLLAMA_URL}. Cannot generate art without Ollama. Please ensure Ollama is running.`);
-   }
+  // Check if Ollama is available
+  console.log('🔍 Checking Ollama availability...');
+  const available = await inference.isAvailable();
+  if (!available) {
+    throw new Error(`❌ CRITICAL: Ollama service is not available at ${OLLAMA_URL}. Cannot generate art without Ollama.`);
+  }
+
+  // Check if model exists
+  const modelAvailable = await inference.modelExists();
+  if (!modelAvailable) {
+    throw new Error(`❌ CRITICAL: Model "${OLLAMA_MODEL}" not found in Ollama. Please pull the model first.`);
+  }
 
   // Load prompt template
   let prompt = '';
@@ -236,8 +159,9 @@ Create something original, visually compelling, and computationally interesting.
   console.log('📝 Prompt:');
   console.log(prompt.substring(0, 200) + '...\n');
 
-  // Generate with Ollama
-  const result = await generator.generate(prompt, {
+  // Generate with Ollama (NO FALLBACK)
+  console.log(`📡 Calling Ollama API (model: ${OLLAMA_MODEL})...`);
+  const result = await inference.generate(prompt, {
     temperature: 0.8,
     topP: 0.9,
     topK: 40,
@@ -246,7 +170,7 @@ Create something original, visually compelling, and computationally interesting.
   });
 
   if (!result.success) {
-    throw new Error(result.error || 'Failed to generate concept');
+    throw new Error(result.error || 'Failed to generate concept with Ollama');
   }
 
   console.log('\n🔄 Parsing concept...');
@@ -292,4 +216,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { generateConceptWithOllama, OllamaConceptGenerator };
+module.exports = { generateConceptWithOllama, OllamaInference };
