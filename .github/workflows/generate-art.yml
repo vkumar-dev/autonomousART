@@ -27,10 +27,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Generate concept
-        run: node scripts/concept-selector.js
+      - name: Generate concept with Ollama
+        run: node scripts/ollama-concept-generator.js
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OLLAMA_URL: ${{ secrets.OLLAMA_URL }}
+          OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL }}
 
       - name: Generate artwork
         run: node scripts/art-generator.js

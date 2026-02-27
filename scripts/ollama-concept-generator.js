@@ -196,15 +196,16 @@ function parseConceptResponse(response) {
 }
 
 async function generateConceptWithOllama() {
-  console.log('🎨 Generating art concept with Ollama...\n');
+   console.log('🎨 Generating art concept with Ollama...\n');
 
-  const generator = new OllamaConceptGenerator();
+   const generator = new OllamaConceptGenerator();
 
-  // Check if Ollama is available
-  const available = await generator.isAvailable();
-  if (!available) {
-    throw new Error('Ollama service is not available. Please start Ollama and try again.');
-  }
+   // Check if Ollama is available
+   console.log('🔍 Checking Ollama availability...');
+   const available = await generator.isAvailable();
+   if (!available) {
+     throw new Error(`❌ CRITICAL: Ollama service is not available at ${OLLAMA_URL}. Cannot generate art without Ollama. Please ensure Ollama is running.`);
+   }
 
   // Load prompt template
   let prompt = '';
