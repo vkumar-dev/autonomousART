@@ -39,30 +39,31 @@ jobs:
           which ollama
           echo "✅ Ollama installed"
 
-      - name: Start Ollama service
+      - name: Start Ollama service in background
         run: |
           echo "🚀 Starting Ollama service..."
-          # Start ollama in background with output redirected, save PID for later
-          nohup ollama serve > /tmp/ollama.log 2>&1 &
-          OLLAMA_PID=$!
-          echo "OLLAMA_PID=$OLLAMA_PID" >> $GITHUB_ENV
-          echo "Ollama PID: $OLLAMA_PID"
+          # Kill any existing ollama processes
+          pkill -f "ollama serve" || true
+          sleep 2
           
-          # Wait for service to be ready (longer timeout)
+          # Start ollama in background with output redirected
+          nohup ollama serve > /tmp/ollama.log 2>&1 &
+          echo "Ollama started with PID $!"
+          
+          # Wait for service to be ready
           for i in {1..60}; do
             if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
               echo "✅ Ollama service ready at $(date)"
-              break
-            fi
-            if [ $i -eq 60 ]; then
-              echo "❌ Ollama failed to start after 60 attempts"
-              echo "Last 50 lines of log:"
-              tail -50 /tmp/ollama.log
-              exit 1
+              exit 0
             fi
             echo "⏳ Waiting for Ollama... ($i/60 at $(date))"
-            sleep 1
+            sleep 2
           done
+          
+          echo "❌ Ollama failed to start after 120 seconds"
+          echo "Last 50 lines of log:"
+          tail -50 /tmp/ollama.log
+          exit 1
 
       - name: Pull Ollama model
         run: |
