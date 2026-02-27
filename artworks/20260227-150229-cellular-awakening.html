@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cellular Awakening - autonomousART</title>
+  <style>
+    body { margin: 0; background: #000; overflow: hidden; }
+    canvas { display: block; }
+    .info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #fff;
+      background: rgba(0,0,0,0.7);
+      padding: 15px 20px;
+      border-radius: 8px;
+      z-index: 10;
+    }
+    .back {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      color: #fff;
+      text-decoration: none;
+      background: rgba(0,0,0,0.7);
+      padding: 10px 15px;
+      border-radius: 6px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="info">
+    <h1>Cellular Awakening</h1>
+    <p>Conway's Game of Life variant where cells bloom into colorful regions, creating evolution in real-time.</p>
+  </div>
+  <a href="../index.html" class="back">← Back</a>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const cellSize = 10;
+    const cols = Math.ceil(canvas.width / cellSize);
+    const rows = Math.ceil(canvas.height / cellSize);
+    let grid = Array(rows).fill(null).map(() => Array(cols).fill(Math.random() > 0.7 ? 1 : 0));
+    
+    const colors = ['#240046','#5a189a','#9d4edd','#00f5f'];
+    
+    function countNeighbors(x, y) {
+      let count = 0;
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          if (i === 0 && j === 0) continue;
+          const nx = (x + i + cols) % cols;
+          const ny = (y + j + rows) % rows;
+          count += grid[ny][nx];
+        }
+      }
+      return count;
+    }
+    
+    function update() {
+      const newGrid = grid.map(row => [...row]);
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const neighbors = countNeighbors(x, y);
+          if (grid[y][x] === 1) {
+            newGrid[y][x] = neighbors === 2 || neighbors === 3 ? 1 : 0;
+          } else {
+            newGrid[y][x] = neighbors === 3 ? 1 : 0;
+          }
+        }
+      }
+      grid = newGrid;
+    }
+    
+    function draw() {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          if (grid[y][x]) {
+            ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+            ctx.fillRect(x * cellSize, y * cellSize, cellSize - 1, cellSize - 1);
+          }
+        }
+      }
+      
+      update();
+      setTimeout(draw, 100);
+    }
+    
+    draw();
+  </script>
+</body>
+</html>
