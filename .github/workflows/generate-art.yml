@@ -64,13 +64,12 @@ jobs:
           done
 
       - name: Pull and prepare Ollama models
-        timeout-minutes: 20
+        timeout-minutes: 15
         run: |
-          echo "📥 Pulling mistral model (this may take a while)..."
-          # Pull the model using the ollama CLI directly
-          # This will download and cache the model
-          timeout 1200 ollama pull mistral || {
-            echo "⚠️  Failed to pull mistral, trying smaller model..."
+          echo "📥 Pulling tinyllama model (faster, smaller)..."
+          # Pull a smaller model to keep CI fast
+          timeout 900 ollama pull tinyllama || {
+            echo "⚠️  Failed to pull tinyllama, trying neural-chat..."
             timeout 600 ollama pull neural-chat || true
           }
           
@@ -97,7 +96,7 @@ jobs:
       - name: Generate art concept with Ollama
         timeout-minutes: 15
         env:
-          OLLAMA_MODEL: mistral
+          OLLAMA_MODEL: tinyllama
           OLLAMA_URL: http://localhost:11434
           OLLAMA_PID: ${{ env.OLLAMA_PID }}
         run: |
@@ -154,6 +153,6 @@ jobs:
         if: always()
         run: |
           echo "📊 Workflow Summary:"
-          echo "   Model: mistral"
+          echo "   Model: tinyllama"
           echo "   Service: Ollama"
           echo "   Status: Complete"
