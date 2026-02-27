@@ -63,28 +63,29 @@ jobs:
             sleep 2
           done
 
-      - name: Pull Ollama model
+      - name: Wait for Ollama and ensure model available
         run: |
-          echo "📥 Pulling model..."
-          RETRIES=3
-          for attempt in $(seq 1 $RETRIES); do
-            echo "Attempt $attempt/$RETRIES..."
-            if timeout 600 ollama pull mistral; then
-              echo "✅ Mistral model pulled successfully"
+          echo "⏳ Waiting for Ollama API to be ready..."
+          for i in {1..30}; do
+            if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+              echo "✅ Ollama API is responsive"
+              
+              # Pre-warm the model by making a test request
+              echo "🔥 Pre-warming mistral model..."
+              timeout 120 curl -s -X POST http://localhost:11434/api/generate \
+                -H "Content-Type: application/json" \
+                -d '{"model":"mistral","prompt":"test","stream":false}' > /dev/null 2>&1 || true
+              
+              echo "✅ Model pre-warmed"
+              sleep 2
               break
             fi
-            if [ $attempt -eq $RETRIES ]; then
-              echo "⚠️  Failed to pull mistral, trying tinyllama..."
-              timeout 300 ollama pull tinyllama || true
-            fi
-            sleep 5
+            echo "⏳ Waiting... ($i/30)"
+            sleep 2
           done
           
           echo "📋 Available models:"
-          ollama list
-          
-          echo "🏥 Health check..."
-          curl -s http://localhost:11434/api/tags | head -20
+          curl -s http://localhost:11434/api/tags
 
       - name: Pre-generation health check
         run: |
