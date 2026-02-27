@@ -39,31 +39,29 @@ jobs:
           which ollama
           echo "✅ Ollama installed"
 
-      - name: Start Ollama service in background
+      - name: Start Ollama service
         run: |
           echo "🚀 Starting Ollama service..."
-          # Kill any existing ollama processes
-          pkill -f "ollama serve" || true
-          sleep 2
-          
           # Start ollama in background with output redirected
           nohup ollama serve > /tmp/ollama.log 2>&1 &
-          echo "Ollama started with PID $!"
+          OLLAMA_PID=$!
+          echo "OLLAMA_PID=$OLLAMA_PID" >> $GITHUB_ENV
+          echo "Ollama started with PID: $OLLAMA_PID"
           
           # Wait for service to be ready
           for i in {1..60}; do
             if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
               echo "✅ Ollama service ready at $(date)"
-              exit 0
+              break
             fi
-            echo "⏳ Waiting for Ollama... ($i/60 at $(date))"
+            if [ $i -eq 60 ]; then
+              echo "❌ Ollama failed to start after 60 attempts"
+              tail -50 /tmp/ollama.log
+              exit 1
+            fi
+            echo "⏳ Waiting for Ollama... ($i/60)"
             sleep 2
           done
-          
-          echo "❌ Ollama failed to start after 120 seconds"
-          echo "Last 50 lines of log:"
-          tail -50 /tmp/ollama.log
-          exit 1
 
       - name: Pull Ollama model
         run: |
@@ -107,8 +105,13 @@ jobs:
         env:
           OLLAMA_MODEL: mistral
           OLLAMA_URL: http://localhost:11434
+          OLLAMA_PID: ${{ env.OLLAMA_PID }}
         run: |
           echo "✍️  Generating art concept with Ollama..."
+          echo "OLLAMA_PID from env: $OLLAMA_PID"
+          echo "Checking if ollama is still running..."
+          ps aux | grep ollama | grep -v grep || echo "⚠️  Ollama process not found!"
+          
           timeout 600 node scripts/ollama-concept-generator.js || EXIT_CODE=$?
           if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 124 ]; then
             echo "❌ Concept generation failed"
