@@ -11,7 +11,7 @@ const path = require('path');
 const OllamaInference = require('./ollama-inference');
 
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://127.0.0.1:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'tinyllama';
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5-coder:7b';
 const CONCEPT_FILE = path.join(__dirname, '..', 'selected-concept.json');
 const PROMPT_FILE = path.join(__dirname, '..', 'prompts', 'art-generation.txt');
 const HISTORY_FILE = path.join(__dirname, '..', 'concept-history.json');

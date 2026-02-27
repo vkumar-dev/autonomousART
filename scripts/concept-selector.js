@@ -16,7 +16,7 @@ const HISTORY_FILE = path.join(__dirname, '..', 'concept-history.json');
 const PROMPT_FILE = path.join(__dirname, '..', 'prompts', 'art-generation.txt');
 
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'mistral';
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5-coder:7b';
 
 const ART_TECHNIQUES = [
   'Fractal Mathematics',
