@@ -1,0 +1,54 @@
+name: Generate Art
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'package.json'
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */4 * * *'
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate concept
+        run: node scripts/concept-selector.js
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Generate artwork
+        run: node scripts/art-generator.js
+
+      - name: Build gallery index
+        run: node scripts/build-gallery.js
+
+      - name: Configure Git
+        run: |
+          git config user.name "autonomousART Bot"
+          git config user.email "bot@autonomousart.local"
+
+      - name: Commit and push
+        run: |
+          if git status --porcelain | grep -q "artworks/"; then
+            git add artworks/ artworks-list.json concept-history.json
+            git commit -m "🎨 Auto-generated artwork: $(date -u +%Y-%m-%d) [skip ci]"
+            git push origin master
+          else
+            echo "No new artworks to commit"
+          fi
