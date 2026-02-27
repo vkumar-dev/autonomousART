@@ -9,7 +9,7 @@
 const fetch = require('node-fetch');
 
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'mistral';
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5-coder:7b';
 
 class OllamaInference {
   constructor(url = OLLAMA_URL, model = OLLAMA_MODEL) {

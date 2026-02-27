@@ -37,7 +37,7 @@ autonomousART now supports **Ollama-based concept generation** similar to the au
 
 Features:
 - Connects to local Ollama instance at `http://localhost:11434` (configurable via `OLLAMA_URL` env var)
-- Uses configurable model (default: `mistral`, configurable via `OLLAMA_MODEL` env var)
+- Uses configurable model (default: `qwen2.5-coder:7b`, configurable via `OLLAMA_MODEL` env var)
 - 10-minute timeout for generation (suitable for slower inference)
 - Structured prompt generation with art-specific parameters
 - Intelligent response parsing to extract:
@@ -47,6 +47,17 @@ Features:
   - Color palette (hex codes)
   - Emotional tone
   - Interaction type
+
+### Model Selection Research (for code-driven mathematical art)
+
+Default model is now **`qwen2.5-coder:7b`** instead of tiny/general small models because:
+
+- It is open-weight and available in Ollama.
+- It is tuned for code synthesis, which helps produce structured algorithmic prompts that map better to Canvas/JS generation.
+- It is generally stronger at math + reasoning heavy tasks than tiny baseline models, improving consistency for fractals, particle systems, and geometry-driven concepts.
+- It still runs locally on commodity hardware compared with larger reasoning models.
+
+If your machine can support bigger models, you can still override with `OLLAMA_MODEL`.
 
 ### Generation Process
 
@@ -67,7 +78,7 @@ Features:
 ```bash
 cd autonomousART
 export OLLAMA_URL="http://localhost:11434"
-export OLLAMA_MODEL="mistral"
+export OLLAMA_MODEL="qwen2.5-coder:7b"
 node scripts/ollama-concept-generator.js
 ```
 
@@ -81,7 +92,7 @@ Update `concept-selector.js` to call Ollama first, then fallback to Gemini API o
 - name: Generate art with Ollama
   env:
     OLLAMA_URL: http://localhost:11434
-    OLLAMA_MODEL: mistral
+    OLLAMA_MODEL: qwen2.5-coder:7b
   run: |
     node scripts/ollama-concept-generator.js
     node scripts/art-generator.js
@@ -115,7 +126,7 @@ Update `concept-selector.js` to call Ollama first, then fallback to Gemini API o
 ## Environment Variables
 
 - `OLLAMA_URL`: Ollama server URL (default: `http://localhost:11434`)
-- `OLLAMA_MODEL`: Model to use (default: `mistral`)
+- `OLLAMA_MODEL`: Model to use (default: `qwen2.5-coder:7b`)
 
 ## Comparison: autonomousBLOG vs autonomousART
 
@@ -123,7 +134,7 @@ Update `concept-selector.js` to call Ollama first, then fallback to Gemini API o
 |--------|---|---|
 | **Inference Type** | Text generation (articles) | Concept generation |
 | **Output** | Markdown files | JSON concept + HTML/Canvas art |
-| **Model** | Mistral | Mistral (same) |
+| **Model** | Mistral | Qwen2.5-Coder 7B |
 | **Timeout** | 10 minutes | 10 minutes |
 | **Tokens** | 1024 | 1500 |
 | **Temperature** | 0.7 | 0.8 (more creative) |
@@ -144,7 +155,7 @@ Update `concept-selector.js` to call Ollama first, then fallback to Gemini API o
 ollama serve
 
 # Pull model (if not already present)
-ollama pull mistral
+ollama pull qwen2.5-coder:7b
 
 # Generate a concept
 cd autonomousART
