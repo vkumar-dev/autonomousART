@@ -19,17 +19,26 @@ class OllamaInference {
   }
 
   /**
-   * Check if Ollama service is available
+   * Check if Ollama service is available (with retries)
    */
-  async isAvailable() {
-    try {
-      const response = await fetch(`${this.url}/api/tags`, { 
-        timeout: 5000 
-      });
-      return response.ok;
-    } catch (error) {
-      return false;
+  async isAvailable(retries = 3) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const response = await fetch(`${this.url}/api/tags`, { 
+          timeout: 5000 
+        });
+        if (response.ok) {
+          return true;
+        }
+      } catch (error) {
+        if (attempt < retries) {
+          console.log(`  Retry ${attempt}/${retries}: ${error.message}`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        }
+      }
     }
+    return false;
   }
 
   /**
