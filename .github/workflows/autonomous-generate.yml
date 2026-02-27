@@ -35,10 +35,13 @@ jobs:
 
       - name: Generate concept with Ollama (primary)
         continue-on-error: true
-        run: node scripts/ollama-concept-generator.js
+        run: |
+          export OLLAMA_URL="${OLLAMA_URL:-http://localhost:11434}"
+          export OLLAMA_MODEL="${OLLAMA_MODEL:-mistral}"
+          node scripts/ollama-concept-generator.js
         env:
-          OLLAMA_URL: ${{ secrets.OLLAMA_URL || 'http://localhost:11434' }}
-          OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL || 'mistral' }}
+          OLLAMA_URL: ${{ secrets.OLLAMA_URL }}
+          OLLAMA_MODEL: ${{ secrets.OLLAMA_MODEL }}
 
       - name: Fallback: Select concept via Gemini
         if: failure()
