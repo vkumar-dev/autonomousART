@@ -682,7 +682,13 @@
       "date": "2026-02-28T12:54:08.404Z",
       "technique": "Interactive Physics",
       "generated": "ollama"
+    },
+    {
+      "title": "Fractal Mathematics - Infinite Possibilities",
+      "date": "2026-02-28T16:32:41.023Z",
+      "technique": "Perlin Noise Landscapes",
+      "generated": "ollama"
     }
   ],
-  "lastUpdated": "2026-02-28T12:54:08.404Z"
+  "lastUpdated": "2026-02-28T16:32:41.023Z"
 }
