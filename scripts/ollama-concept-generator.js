@@ -224,9 +224,9 @@ Only respond with these 5 lines, nothing else.`;
   console.log('\n🔄 Parsing concept...');
   const concept = parseConceptResponse(result.content);
 
-  // Randomly choose art type: 50% code, 50% image
-  concept.artType = Math.random() > 0.5 ? 'code' : 'image';
-  console.log(`\n🎲 Art type selected: ${concept.artType === 'code' ? '💻 Code-generated' : '🖼️  AI Image'}`);
+  // Mark as image art (we're using AI image generation now)
+  concept.artType = 'image';
+  console.log(`\n🎲 Art type: 🖼️  AI Image Generation`);
 
   // Save concept
   fs.writeFileSync(CONCEPT_FILE, JSON.stringify(concept, null, 2));
