@@ -208,8 +208,9 @@
   <script>
     async function loadLatestArt() {
       try {
-        // Fetch artwork list
-        const response = await fetch('artworks-list.json');
+        // Fetch artwork list with cache-busting
+        const bustParam = `?t=${Date.now()}`;
+        const response = await fetch('artworks-list.json' + bustParam);
         if (!response.ok) throw new Error('Failed to fetch artwork list');
 
         const artworks = await response.json();

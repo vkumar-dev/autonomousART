@@ -150,6 +150,33 @@ jobs:
             git push origin master
           fi
 
+      - name: Add cache-busting headers
+        run: |
+          mkdir -p _headers
+          cat > _headers << 'EOF'
+          /index.html
+            Cache-Control: max-age=0, no-cache, no-store, must-revalidate
+          /gallery.html
+            Cache-Control: max-age=0, no-cache, no-store, must-revalidate
+          /*.json
+            Cache-Control: max-age=300
+          /scripts/*
+            Cache-Control: max-age=31536000
+          /styles/*
+            Cache-Control: max-age=31536000
+          EOF
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+
       - name: Show summary
         if: always()
         run: |
