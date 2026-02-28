@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Galactic Whirlwind - The Vortex of Hypnotic Chaos - autonomousART</title>
+  <style>
+    body { margin: 0; background: #000; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    svg { max-width: 100%; max-height: 100%; }
+    .info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #fff;
+      background: rgba(0,0,0,0.7);
+      padding: 15px 20px;
+      border-radius: 8px;
+      z-index: 10;
+    }
+    .back {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      color: #fff;
+      text-decoration: none;
+      background: rgba(0,0,0,0.7);
+      padding: 10px 15px;
+      border-radius: 6px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <svg width="800" height="800" id="svg"></svg>
+  <div class="info">
+    <h1>Galactic Whirlwind - The Vortex of Hypnotic Chaos</h1>
+    <p>A mesmerizing swirl of celestial bodies, each rendered through Generative Geometry, creating a visual representation of a cosmic vortex.</p>
+  </div>
+  <a href="../index.html" class="back">← Back</a>
+
+  <script>
+    const svg = document.getElementById('svg');
+    const center = 400;
+    const colors = ['#1a1a2e','#16213e','#0f3460','#e9456'];
+    
+    function drawMandala(radius, depth) {
+      const petals = 6 + depth;
+      for (let i = 0; i < petals; i++) {
+        const angle = (i / petals) * Math.PI * 2;
+        const x = center + Math.cos(angle) * radius;
+        const y = center + Math.sin(angle) * radius;
+        
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', x);
+        circle.setAttribute('cy', y);
+        circle.setAttribute('r', radius * 0.3);
+        circle.setAttribute('fill', colors[depth % colors.length]);
+        circle.setAttribute('opacity', (10 - depth) / 10);
+        svg.appendChild(circle);
+      }
+    }
+    
+    for (let depth = 0; depth < 8; depth++) {
+      drawMandala(50 + depth * 30, depth);
+    }
+    
+    // Add rotation animation
+    svg.style.animation = 'rotate 20s linear infinite';
+    const style = document.createElement('style');
+    style.textContent = '@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
