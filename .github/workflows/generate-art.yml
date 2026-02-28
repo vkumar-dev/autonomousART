@@ -130,7 +130,7 @@ jobs:
           git config --global user.name 'autonomousART Bot'
           git config --global user.email 'autonomousart@github-actions.local'
 
-      - name: Commit and push artwork (prevent recursive trigger)
+      - name: Commit and push artwork (trigger deploy)
         run: |
           git add artworks/ artworks-list.json concept-history.json
           
@@ -139,8 +139,8 @@ jobs:
             exit 0
           fi
           
-          # Use [skip ci] to prevent re-triggering
-          git commit -m "🎨 Auto-generated artwork: $(date -u +%Y-%m-%d) [skip ci]"
+          # Don't use [skip ci] - we WANT deploy workflow to run
+          git commit -m "🎨 Auto-generated artwork: $(date -u +%Y-%m-%d)"
           
           if git push origin master; then
             echo "✅ Artwork committed and pushed"
