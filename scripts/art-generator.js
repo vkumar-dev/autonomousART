@@ -14,27 +14,54 @@ const ARTWORKS_DIR = path.join(__dirname, '..', 'artworks');
 const CONCEPT_FILE = path.join(__dirname, '..', 'selected-concept.json');
 
 /**
- * Download image from URL
+ * Download image from URL with retry
  */
-function downloadImage(url, outputPath) {
+function downloadImage(url, outputPath, retries = 3) {
   return new Promise((resolve, reject) => {
     const protocol = url.startsWith('https') ? https : http;
-    const file = fs.createWriteStream(outputPath);
     
-    protocol.get(url, (response) => {
-      if (response.statusCode !== 200) {
-        reject(new Error(`HTTP ${response.statusCode}`));
-        return;
-      }
-      response.pipe(file);
-      file.on('finish', () => {
+    let attempt = 0;
+    
+    const tryDownload = () => {
+      attempt++;
+      console.log(`   Download attempt ${attempt}/${retries}...`);
+      
+      const file = fs.createWriteStream(outputPath);
+      let downloaded = false;
+      
+      protocol.get(url, (response) => {
+        if (response.statusCode === 200) {
+          downloaded = true;
+          response.pipe(file);
+          file.on('finish', () => {
+            file.close();
+            resolve();
+          });
+        } else {
+          file.close();
+          fs.unlink(outputPath, () => {});
+          
+          if (attempt < retries && response.statusCode >= 500) {
+            console.log(`   HTTP ${response.statusCode}, retrying in 2s...`);
+            setTimeout(tryDownload, 2000);
+          } else {
+            reject(new Error(`HTTP ${response.statusCode}`));
+          }
+        }
+      }).on('error', (err) => {
         file.close();
-        resolve();
+        fs.unlink(outputPath, () => {});
+        
+        if (attempt < retries) {
+          console.log(`   Error: ${err.message}, retrying in 2s...`);
+          setTimeout(tryDownload, 2000);
+        } else {
+          reject(err);
+        }
       });
-    }).on('error', (err) => {
-      fs.unlink(outputPath, () => {});
-      reject(err);
-    });
+    };
+    
+    tryDownload();
   });
 }
 
@@ -59,50 +86,78 @@ function buildImagePrompt(concept) {
 }
 
 /**
- * Generate image using Pollinations.ai
+ * Generate image using Pollinations.ai with fallback
  */
 async function generateArt() {
   // Load concept
   if (!fs.existsSync(CONCEPT_FILE)) {
     throw new Error('No concept found. Run concept-selector.js first.');
   }
-  
+
   const concept = JSON.parse(fs.readFileSync(CONCEPT_FILE, 'utf8'));
   console.log('🎨 Generating art for:', concept.title);
-  
+
   // Build prompt
   const prompt = buildImagePrompt(concept);
   console.log('📝 Image prompt:', prompt);
-  
+
   // Pollinations.ai settings
   const width = 1024;
   const height = 1024;
   const seed = Math.floor(Math.random() * 1000000);
-  const model = 'flux'; // Free FLUX model
   
-  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=${model}&nologo=true`;
+  // Try multiple models for reliability
+  const models = ['flux', 'stable-diffusion'];
+  let success = false;
+  let imageData = null;
   
-  console.log(`🖼️  Model: ${model}`);
-  console.log(`📐 Size: ${width}x${height}`);
-  console.log(`🌱 Seed: ${seed}`);
-  console.log(`🔗 URL: ${url}\n`);
+  for (const model of models) {
+    try {
+      console.log(`\n🔄 Trying model: ${model}...`);
+      
+      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=${model}&nologo=true`;
+      
+      console.log(`🖼️  Model: ${model}`);
+      console.log(`📐 Size: ${width}x${height}`);
+      console.log(`🌱 Seed: ${seed}`);
+      
+      // Generate filenames
+      const timestamp = generateTimestamp();
+      const slug = generateSlug(concept.title);
+      const imageFilename = `${timestamp}-${slug}.png`;
+      const imagePath = path.join(ARTWORKS_DIR, imageFilename);
+      
+      fs.mkdirSync(ARTWORKS_DIR, { recursive: true });
+      
+      // Download image
+      console.log('⬇️  Downloading generated image...');
+      await downloadImage(url, imagePath);
+      console.log(`✅ Image saved: ${imageFilename}`);
+      
+      imageData = { imageFilename, imagePath, model, seed, width, height };
+      success = true;
+      break; // Success!
+      
+    } catch (error) {
+      console.log(`❌ Model ${model} failed: ${error.message}`);
+      if (model === models[models.length - 1]) {
+        throw error; // Last model failed
+      }
+    }
+  }
   
-  // Generate filenames
-  const timestamp = generateTimestamp();
-  const slug = generateSlug(concept.title);
-  const imageFilename = `${timestamp}-${slug}.png`;
-  const imagePath = path.join(ARTWORKS_DIR, imageFilename);
-  
-  fs.mkdirSync(ARTWORKS_DIR, { recursive: true });
-  
-  // Download image
-  console.log('⬇️  Downloading generated image...');
-  await downloadImage(url, imagePath);
-  console.log(`✅ Image saved: ${imageFilename}`);
+  if (!success || !imageData) {
+    throw new Error('All models failed');
+  }
   
   // Generate HTML wrapper
-  const html = generateHTML(concept, imageFilename, { model, seed, width, height });
-  const htmlFilename = `${timestamp}-${slug}.html`;
+  const html = generateHTML(concept, imageData.imageFilename, { 
+    model: imageData.model, 
+    seed: imageData.seed, 
+    width: imageData.width, 
+    height: imageData.height 
+  });
+  const htmlFilename = `${imageData.imageFilename.replace('.png', '.html')}`;
   const htmlPath = path.join(ARTWORKS_DIR, htmlFilename);
   fs.writeFileSync(htmlPath, html);
   console.log(`✅ HTML wrapper: ${htmlFilename}`);
@@ -113,7 +168,7 @@ async function generateArt() {
   }
   
   console.log('\n✨ Artwork generation complete!');
-  return { image: imageFilename, html: htmlFilename };
+  return { image: imageData.imageFilename, html: htmlFilename };
 }
 
 /**
