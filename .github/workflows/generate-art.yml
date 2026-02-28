@@ -146,9 +146,10 @@ jobs:
             echo "ℹ️  No changes to commit"
             exit 0
           fi
-          
-          # Use [skip ci] to prevent recursive trigger
-          git commit -m "🎨 Auto-generated artwork: $(date -u +%Y-%m-%d) [skip ci]"
+
+          # Commit without [skip ci] - workflow only triggers on schedule/manual
+          # The push trigger only activates when package.json changes
+          git commit -m "🎨 Auto-generated artwork: $(date -u +%Y-%m-%d)"
           
           if git push origin master; then
             echo "✅ Artwork committed and pushed"
