@@ -141,16 +141,15 @@ jobs:
       - name: Commit and push artwork
         run: |
           git add artworks/ artworks-list.json concept-history.json
-          
+
           if git diff --staged --quiet; then
             echo "ℹ️  No changes to commit"
             exit 0
           fi
 
-          # Commit without [skip ci] - workflow only triggers on schedule/manual
-          # The push trigger only activates when package.json changes
+          # Commit without [skip ci] - deploy workflow will handle deployment
           git commit -m "🎨 Auto-generated artwork: $(date -u +%Y-%m-%d)"
-          
+
           if git push origin master; then
             echo "✅ Artwork committed and pushed"
           else
@@ -159,22 +158,19 @@ jobs:
             git push origin master
           fi
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-      
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Trigger deploy workflow
+        if: always()
+        run: |
+          echo "🚀 Triggering deploy workflow..."
+          gh workflow run deploy.yml --ref master
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Show summary
         if: always()
         run: |
           echo "📊 Workflow Summary:"
-          echo "   Model: tinyllama"
+          echo "   Model: mistral"
           echo "   Service: Ollama"
           echo "   Status: Complete"
+          echo "   Deploy: Triggered separately"
