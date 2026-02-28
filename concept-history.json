@@ -658,7 +658,13 @@
       "date": "2026-02-27T20:33:45.293Z",
       "technique": "Particle Dynamics",
       "generated": "ollama"
+    },
+    {
+      "title": "A Mathematician's Dreamland",
+      "date": "2026-02-28T02:07:54.909Z",
+      "technique": "Particle Dynamics",
+      "generated": "ollama"
     }
   ],
-  "lastUpdated": "2026-02-27T20:33:45.293Z"
+  "lastUpdated": "2026-02-28T02:07:54.909Z"
 }
