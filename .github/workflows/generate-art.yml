@@ -147,7 +147,7 @@ jobs:
             exit 0
           fi
 
-          # Commit without [skip ci] - deploy workflow will handle deployment
+          # Commit without [skip ci] - deploy workflow will trigger automatically
           git commit -m "🎨 Auto-generated artwork: $(date -u +%Y-%m-%d)"
 
           if git push origin master; then
@@ -158,14 +158,6 @@ jobs:
             git push origin master
           fi
 
-      - name: Trigger deploy workflow
-        if: always()
-        run: |
-          echo "🚀 Triggering deploy workflow..."
-          gh workflow run deploy.yml --ref master
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Show summary
         if: always()
         run: |
@@ -173,4 +165,4 @@ jobs:
           echo "   Model: mistral"
           echo "   Service: Ollama"
           echo "   Status: Complete"
-          echo "   Deploy: Triggered separately"
+          echo "   Deploy: Will run automatically via push trigger"
