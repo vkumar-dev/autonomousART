@@ -152,7 +152,6 @@ jobs:
 
       - name: Add cache-busting headers
         run: |
-          mkdir -p _headers
           cat > _headers << 'EOF'
           /index.html
             Cache-Control: max-age=0, no-cache, no-store, must-revalidate
