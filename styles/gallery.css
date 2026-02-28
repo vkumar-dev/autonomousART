@@ -163,6 +163,14 @@ header.hero {
   letter-spacing: 0.5px;
 }
 
+.artwork-type.image-type {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.artwork-type.code-type {
+  background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+}
+
 .artwork-date {
   color: var(--accent);
   font-size: 0.75rem;

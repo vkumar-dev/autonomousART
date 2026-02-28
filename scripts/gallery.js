@@ -113,10 +113,15 @@ class Gallery {
       day: 'numeric'
     });
 
+    // Detect art type from filename
+    const isImage = artwork.filename.endsWith('.png');
+    const typeLabel = isImage ? '🖼️ AI Image' : '💻 Code';
+    const typeClass = isImage ? 'image-type' : 'code-type';
+
     return `
       <a href="${artwork.path}" class="artwork-card" style="animation-delay:${Math.min(index * 35, 400)}ms" title="${this.escapeHtml(artwork.title)}" target="_blank">
         <div class="artwork-meta">
-          <span class="artwork-type">Generative</span>
+          <span class="artwork-type ${typeClass}">${typeLabel}</span>
           <span class="artwork-date">${formattedDate}</span>
         </div>
         <h3 class="artwork-title">${this.escapeHtml(artwork.title)}</h3>

@@ -122,6 +122,7 @@ jobs:
           echo "✅ Concept generation complete"
 
       - name: Generate artwork
+        timeout-minutes: 10
         run: |
           echo "🎨 Generating artwork..."
           node scripts/art-generator.js

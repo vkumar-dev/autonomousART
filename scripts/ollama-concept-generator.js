@@ -224,6 +224,10 @@ Only respond with these 5 lines, nothing else.`;
   console.log('\n🔄 Parsing concept...');
   const concept = parseConceptResponse(result.content);
 
+  // Randomly choose art type: 50% code, 50% image
+  concept.artType = Math.random() > 0.5 ? 'code' : 'image';
+  console.log(`\n🎲 Art type selected: ${concept.artType === 'code' ? '💻 Code-generated' : '🖼️  AI Image'}`);
+
   // Save concept
   fs.writeFileSync(CONCEPT_FILE, JSON.stringify(concept, null, 2));
   console.log('\n✅ Concept saved successfully!');
@@ -231,6 +235,7 @@ Only respond with these 5 lines, nothing else.`;
   console.log(`   Technique: ${concept.technique}`);
   console.log(`   Tone: ${concept.tone}`);
   console.log(`   Colors: ${concept.colors.join(', ')}`);
+  console.log(`   Type: ${concept.artType}`);
 
   // Update history
   const history = getConceptHistory();

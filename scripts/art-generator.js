@@ -824,35 +824,46 @@ async function generateArt() {
   if (!fs.existsSync(CONCEPT_FILE)) {
     throw new Error('No concept selected. Run concept-selector.js first.');
   }
-  
+
   const concept = JSON.parse(fs.readFileSync(CONCEPT_FILE, 'utf8'));
   console.log('🎨 Generating art for:', concept.title);
   
+  // Check art type and use appropriate generator
+  if (concept.artType === 'image') {
+    console.log('🖼️  Generating AI image artwork...');
+    const { generateImageArt } = require('./image-generator');
+    const result = await generateImageArt();
+    return { file: result.htmlFile, filename: result.htmlFile, type: 'image' };
+  }
+  
+  // Default: code-generated art
+  console.log('💻 Generating code-based artwork...');
+
   // Get appropriate generator
   const generator = TECHNIQUES[concept.technique] || generateExpressionistArt;
-  
+
   // Generate HTML
   const html = generator(concept);
-  
+
   // Save artwork
   const timestamp = generateTimestamp();
   const slug = generateSlug(concept.title);
   const filename = `${timestamp}-${slug}.html`;
   const filepath = path.join(ARTWORKS_DIR, filename);
-  
+
   // Ensure directory exists
   fs.mkdirSync(ARTWORKS_DIR, { recursive: true });
-  
+
   // Write file
   fs.writeFileSync(filepath, html);
   console.log('✅ Artwork created:', filepath);
-  
+
   // Clean up concept file
   if (fs.existsSync(CONCEPT_FILE)) {
     fs.unlinkSync(CONCEPT_FILE);
   }
-  
-  return { file: filepath, filename };
+
+  return { file: filepath, filename, type: 'code' };
 }
 
 // Main
