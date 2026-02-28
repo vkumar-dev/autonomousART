@@ -121,7 +121,9 @@ class OllamaInference {
 
       const data = await response.json();
       const models = data.models || [];
-      return models.some(m => m.name.includes(this.model));
+      // Check if model name matches (handle tags like mistral:latest)
+      const baseModel = this.model.split(':')[0];
+      return models.some(m => m.name.includes(baseModel) || m.name.includes(this.model));
     } catch (error) {
       return false;
     }

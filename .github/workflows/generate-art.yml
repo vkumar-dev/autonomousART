@@ -66,13 +66,16 @@ jobs:
       - name: Pull and prepare Ollama models
         timeout-minutes: 15
         run: |
-          echo "📥 Pulling tinyllama model (faster, smaller)..."
-          # Pull a smaller model to keep CI fast
-          timeout 900 ollama pull tinyllama || {
-            echo "⚠️  Failed to pull tinyllama, trying neural-chat..."
-            timeout 600 ollama pull neural-chat || true
+          echo "📥 Pulling mistral model (reliable for structured output)..."
+          # Pull mistral - more reliable for structured output
+          timeout 900 ollama pull mistral || {
+            echo "⚠️  Failed to pull mistral, trying llama3.2..."
+            timeout 600 ollama pull llama3.2 || {
+              echo "⚠️  Failed to pull llama3.2, trying tinyllama..."
+              timeout 300 ollama pull tinyllama || true
+            }
           }
-          
+
           echo ""
           echo "✅ Model pull complete"
           echo ""
@@ -96,7 +99,7 @@ jobs:
       - name: Generate art concept with Ollama
         timeout-minutes: 15
         env:
-          OLLAMA_MODEL: tinyllama
+          OLLAMA_MODEL: mistral
           OLLAMA_URL: http://127.0.0.1:11434
           OLLAMA_PID: ${{ env.OLLAMA_PID }}
         run: |
@@ -104,7 +107,7 @@ jobs:
           echo "OLLAMA_PID from env: $OLLAMA_PID"
           echo "Checking if ollama is still running..."
           ps aux | grep ollama | grep -v grep || echo "⚠️  Ollama process not found!"
-          
+
           EXIT_CODE=0
           timeout 600 node scripts/ollama-concept-generator.js || EXIT_CODE=$?
           if [ "$EXIT_CODE" -ne 0 ] && [ "$EXIT_CODE" -ne 124 ]; then

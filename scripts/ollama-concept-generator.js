@@ -66,7 +66,7 @@ function getRandomTone() {
 function parseConceptResponse(response) {
   console.log('📝 Raw response from Ollama:');
   console.log('---');
-  console.log(response.substring(0, 500));
+  console.log(response);
   console.log('---\n');
 
   // Parse Ollama response to extract concept details
@@ -83,52 +83,67 @@ function parseConceptResponse(response) {
   try {
     // Split response into lines
     const lines = response.split('\n').map(l => l.trim()).filter(l => l);
-    
+
     lines.forEach(line => {
-      // Extract title
-      if (line.match(/^title:/i)) {
-        const match = line.match(/^title:\s*(.+)$/i);
-        if (match) concept.title = match[1].trim().slice(0, 50);
+      // Extract title - match "Title:" at start of line (case insensitive)
+      const titleMatch = line.match(/^Title:\s*(.+)$/i);
+      if (titleMatch) {
+        concept.title = titleMatch[1].trim().replace(/^["']|["']$/g, '').slice(0, 50);
+        console.log(`✓ Extracted title: ${concept.title}`);
       }
-      
-      // Extract concept
-      if (line.match(/^concept:/i)) {
-        const match = line.match(/^concept:\s*(.+)$/i);
-        if (match) concept.concept = match[1].trim().slice(0, 200);
+
+      // Extract concept description
+      const conceptMatch = line.match(/^Concept:\s*(.+)$/i);
+      if (conceptMatch) {
+        concept.concept = conceptMatch[1].trim().replace(/^["']|["']$/g, '').slice(0, 300);
+        console.log(`✓ Extracted concept: ${concept.concept.substring(0, 50)}...`);
       }
-      
+
       // Extract technique
-      if (line.match(/^technique:/i)) {
-        const match = line.match(/^technique:\s*(.+)$/i);
-        if (match) {
-          const mentioned = match[1].trim();
-          const foundTechnique = ART_TECHNIQUES.find(t => mentioned.includes(t));
-          if (foundTechnique) concept.technique = foundTechnique;
+      const techniqueMatch = line.match(/^Technique:\s*(.+)$/i);
+      if (techniqueMatch) {
+        const mentioned = techniqueMatch[1].trim();
+        const foundTechnique = ART_TECHNIQUES.find(t => mentioned.toLowerCase().includes(t.toLowerCase()));
+        if (foundTechnique) {
+          concept.technique = foundTechnique;
+          console.log(`✓ Extracted technique: ${concept.technique}`);
         }
       }
-      
-      // Extract colors
-      if (line.match(/^colors:/i)) {
-        const colorMatches = line.match(/#[0-9a-f]{6}/gi);
+
+      // Extract colors - look for hex codes in the line
+      if (line.match(/^Colors:/i)) {
+        const colorMatches = line.match(/#[0-9a-fA-F]{3,6}/g);
         if (colorMatches && colorMatches.length > 0) {
           concept.colors = [...new Set(colorMatches.slice(0, 5))];
+          console.log(`✓ Extracted colors: ${concept.colors.join(', ')}`);
         }
       }
-      
+
       // Extract tone
-      if (line.match(/^tone:/i)) {
-        const match = line.match(/^tone:\s*(.+)$/i);
-        if (match) {
-          const mentioned = match[1].trim();
-          const foundTone = EMOTIONAL_TONES.find(t => mentioned.includes(t));
-          if (foundTone) concept.tone = foundTone;
+      const toneMatch = line.match(/^Tone:\s*(.+)$/i);
+      if (toneMatch) {
+        const mentioned = toneMatch[1].trim();
+        const foundTone = EMOTIONAL_TONES.find(t => mentioned.toLowerCase().includes(t.toLowerCase()));
+        if (foundTone) {
+          concept.tone = foundTone;
+          console.log(`✓ Extracted tone: ${concept.tone}`);
         }
       }
     });
 
+    // If we couldn't extract title, try alternate parsing
+    if (concept.title === 'Untitled Concept') {
+      const altTitle = response.match(/Title[:\s]+([^\n]+)/i);
+      if (altTitle) {
+        concept.title = altTitle[1].trim().replace(/^["']|["']$/g, '').slice(0, 50);
+        console.log(`✓ Extracted title (alt): ${concept.title}`);
+      }
+    }
+
     // Validate we got at least a title from parsing
     if (concept.title === 'Untitled Concept') {
       console.warn('⚠️  Warning: Could not extract structured data from response');
+      console.warn('   Using generated fallback values');
     }
 
   } catch (error) {
@@ -148,12 +163,6 @@ async function generateConceptWithOllama() {
   const available = await inference.isAvailable();
   if (!available) {
     throw new Error(`❌ CRITICAL: Ollama service is not available at ${OLLAMA_URL}. Cannot generate art without Ollama.`);
-  }
-
-  // Check if model exists
-  const modelAvailable = await inference.modelExists();
-  if (!modelAvailable) {
-    throw new Error(`❌ CRITICAL: Model "${OLLAMA_MODEL}" not found in Ollama. Please pull the model first.`);
   }
 
   // Load prompt template
