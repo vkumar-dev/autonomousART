@@ -84,6 +84,8 @@ function parseConceptResponse(response) {
     // Split response into lines
     const lines = response.split('\n').map(l => l.trim()).filter(l => l);
 
+    let techniqueFound = false;
+
     lines.forEach(line => {
       // Extract title - match "Title:" at start of line (case insensitive)
       const titleMatch = line.match(/^Title:\s*(.+)$/i);
@@ -97,15 +99,28 @@ function parseConceptResponse(response) {
       if (conceptMatch) {
         concept.concept = conceptMatch[1].trim().replace(/^["']|["']$/g, '').slice(0, 300);
         console.log(`✓ Extracted concept: ${concept.concept.substring(0, 50)}...`);
+        
+        // Try to extract technique from concept description if Technique line is missing
+        if (!techniqueFound) {
+          for (const tech of ART_TECHNIQUES) {
+            if (concept.concept.toLowerCase().includes(tech.toLowerCase())) {
+              concept.technique = tech;
+              techniqueFound = true;
+              console.log(`✓ Extracted technique from concept: ${concept.technique}`);
+              break;
+            }
+          }
+        }
       }
 
-      // Extract technique
+      // Extract technique from dedicated line
       const techniqueMatch = line.match(/^Technique:\s*(.+)$/i);
       if (techniqueMatch) {
         const mentioned = techniqueMatch[1].trim();
         const foundTechnique = ART_TECHNIQUES.find(t => mentioned.toLowerCase().includes(t.toLowerCase()));
         if (foundTechnique) {
           concept.technique = foundTechnique;
+          techniqueFound = true;
           console.log(`✓ Extracted technique: ${concept.technique}`);
         }
       }
