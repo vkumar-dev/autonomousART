@@ -14,7 +14,7 @@ const ARTWORKS_DIR = path.join(__dirname, '..', 'artworks');
 const CONCEPT_FILE = path.join(__dirname, '..', 'selected-concept.json');
 
 /**
- * Download image from URL with retry
+ * Download image from URL with retry and user-agent
  */
 function downloadImage(url, outputPath, retries = 3) {
   return new Promise((resolve, reject) => {
@@ -27,9 +27,16 @@ function downloadImage(url, outputPath, retries = 3) {
       console.log(`   Download attempt ${attempt}/${retries}...`);
       
       const file = fs.createWriteStream(outputPath);
+      const options = {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; autonomousART/1.0)',
+          'Accept': 'image/png,image/jpeg,*/*'
+        }
+      };
+      
       let downloaded = false;
       
-      protocol.get(url, (response) => {
+      protocol.get(url, options, (response) => {
         if (response.statusCode === 200) {
           downloaded = true;
           response.pipe(file);
@@ -42,8 +49,8 @@ function downloadImage(url, outputPath, retries = 3) {
           fs.unlink(outputPath, () => {});
           
           if (attempt < retries && response.statusCode >= 500) {
-            console.log(`   HTTP ${response.statusCode}, retrying in 2s...`);
-            setTimeout(tryDownload, 2000);
+            console.log(`   HTTP ${response.statusCode}, retrying in 3s...`);
+            setTimeout(tryDownload, 3000);
           } else {
             reject(new Error(`HTTP ${response.statusCode}`));
           }
@@ -53,8 +60,8 @@ function downloadImage(url, outputPath, retries = 3) {
         fs.unlink(outputPath, () => {});
         
         if (attempt < retries) {
-          console.log(`   Error: ${err.message}, retrying in 2s...`);
-          setTimeout(tryDownload, 2000);
+          console.log(`   Error: ${err.message}, retrying in 3s...`);
+          setTimeout(tryDownload, 3000);
         } else {
           reject(err);
         }
@@ -86,7 +93,7 @@ function buildImagePrompt(concept) {
 }
 
 /**
- * Generate image using Pollinations.ai with fallback
+ * Generate image using multiple providers with fallback
  */
 async function generateArt() {
   // Load concept
@@ -101,27 +108,37 @@ async function generateArt() {
   const prompt = buildImagePrompt(concept);
   console.log('📝 Image prompt:', prompt);
 
-  // Pollinations.ai settings
   const width = 1024;
   const height = 1024;
   const seed = Math.floor(Math.random() * 1000000);
   
-  // Try multiple models for reliability
-  const models = ['flux', 'stable-diffusion'];
-  let success = false;
+  // Try multiple providers
+  const providers = [
+    {
+      name: 'pollinations-flux',
+      getUrl: () => `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=flux&nologo=true`
+    },
+    {
+      name: 'pollinations-sd',
+      getUrl: () => `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=stable-diffusion&nologo=true`
+    },
+    {
+      name: 'pollinations-anime',
+      getUrl: () => `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=anime&nologo=true`
+    }
+  ];
+  
   let imageData = null;
   
-  for (const model of models) {
+  for (const provider of providers) {
     try {
-      console.log(`\n🔄 Trying model: ${model}...`);
+      console.log(`\n🔄 Trying provider: ${provider.name}...`);
       
-      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${seed}&model=${model}&nologo=true`;
-      
-      console.log(`🖼️  Model: ${model}`);
+      const url = provider.getUrl();
+      console.log(`🖼️  Model: ${provider.name}`);
       console.log(`📐 Size: ${width}x${height}`);
       console.log(`🌱 Seed: ${seed}`);
       
-      // Generate filenames
       const timestamp = generateTimestamp();
       const slug = generateSlug(concept.title);
       const imageFilename = `${timestamp}-${slug}.png`;
@@ -129,25 +146,20 @@ async function generateArt() {
       
       fs.mkdirSync(ARTWORKS_DIR, { recursive: true });
       
-      // Download image
       console.log('⬇️  Downloading generated image...');
-      await downloadImage(url, imagePath);
+      await downloadImage(url, imagePath, 3);
       console.log(`✅ Image saved: ${imageFilename}`);
       
-      imageData = { imageFilename, imagePath, model, seed, width, height };
-      success = true;
+      imageData = { imageFilename, imagePath, model: provider.name, seed, width, height };
       break; // Success!
       
     } catch (error) {
-      console.log(`❌ Model ${model} failed: ${error.message}`);
-      if (model === models[models.length - 1]) {
-        throw error; // Last model failed
-      }
+      console.log(`❌ Provider ${provider.name} failed: ${error.message}`);
     }
   }
   
-  if (!success || !imageData) {
-    throw new Error('All models failed');
+  if (!imageData) {
+    throw new Error('All image providers failed. Pollinations.ai may be rate-limiting GitHub Actions IPs.');
   }
   
   // Generate HTML wrapper

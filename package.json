@@ -5,7 +5,6 @@
   "main": "scripts/art-generator.js",
   "scripts": {
     "generate-concept": "node scripts/concept-selector.js",
-    "generate-concept-ollama": "node scripts/ollama-concept-generator.js",
     "generate-art": "node scripts/art-generator.js",
     "build-gallery": "node scripts/build-gallery.js",
     "generate-all": "npm run generate-concept && npm run generate-art && npm run build-gallery"
