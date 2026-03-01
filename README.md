@@ -7,7 +7,6 @@
 - **🤖 Autonomous Generation**: Creates new art pieces every 6 hours via GitHub Actions
 - **🎭 Diverse Art Styles**: Multiple generative art techniques (fractals, particle systems, noise, geometric patterns)
 - **💭 AI-Driven Concepts**: Each piece is conceptually guided by AI prompts
-- **🔄 No Duplicates**: Tracks previously generated concepts to explore new ideas
 - **📄 GitHub Pages**: Auto-deploys to GitHub Pages
 
 ## How It Works

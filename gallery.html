@@ -3,47 +3,576 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>autonomousART - AI-Powered Generative Art Gallery</title>
-  <meta name="description" content="Exploring the latent space of creative code through AI-guided generative art. New pieces every 6 hours.">
-  <link rel="stylesheet" href="styles/gallery.css">
+  <title>Gallery - autonomousART</title>
+  <meta name="description" content="Explore the complete collection of AI-generated artworks.">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #7209b7;
+      --secondary: #f72585;
+      --accent: #00d4ff;
+      --dark: #0a0a0a;
+      --card-bg: rgba(20, 20, 30, 0.5);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+      background: var(--dark);
+      color: #fff;
+      line-height: 1.6;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, rgba(10, 10, 15, 0.8), rgba(114, 9, 183, 0.1));
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 24px 0;
+    }
+
+    .header-content {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 40px;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #00d4ff, #7209b7, #f72585);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    .header-info {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-left: auto;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .header-info span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-home {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .btn-home:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Main Content */
+    main {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 60px 32px;
+    }
+
+    .page-header {
+      margin-bottom: 50px;
+    }
+
+    .page-title {
+      font-size: 42px;
+      font-weight: 300;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+    }
+
+    .page-subtitle {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.6);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stat-badge {
+      background: rgba(247, 37, 133, 0.15);
+      color: #f72585;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    /* Gallery Grid */
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 80px;
+    }
+
+    .gallery-item {
+      position: relative;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      group: "gallery";
+      border-radius: 8px;
+      overflow: hidden;
+      aspect-ratio: 1;
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      opacity: 0;
+      animation: itemFadeIn 0.5s ease forwards;
+    }
+
+    @keyframes itemFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .gallery-item:hover {
+      transform: translateY(-8px);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 20px 40px rgba(247, 37, 133, 0.1);
+      background: var(--card-bg);
+    }
+
+    .gallery-item::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent, rgba(0, 212, 255, 0.05));
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .gallery-item:hover::before {
+      opacity: 1;
+    }
+
+    .item-number {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.3);
+      z-index: 2;
+    }
+
+    .item-meta {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .item-badge {
+      background: rgba(114, 9, 183, 0.4);
+      border: 1px solid rgba(114, 9, 183, 0.6);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #b8a5ff;
+    }
+
+    .item-date {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      padding: 4px 10px;
+    }
+
+    .item-title {
+      position: relative;
+      z-index: 2;
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: auto;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .item-footer {
+      position: relative;
+      z-index: 2;
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .item-footer::after {
+      content: '→';
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+      margin-left: 8px;
+    }
+
+    .gallery-item:hover .item-footer::after {
+      color: #f72585;
+      margin-left: 12px;
+    }
+
+    /* Loading State */
+    .loading-state {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 40px;
+      gap: 20px;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-top: 2px solid #f72585;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Empty State */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 120px 40px;
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 40px 32px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: opacity 0.3s;
+    }
+
+    footer a:hover {
+      opacity: 0.8;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header-content {
+        flex-wrap: wrap;
+        padding: 0 20px;
+        gap: 16px;
+      }
+
+      .header-info {
+        order: 3;
+        width: 100%;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      main {
+        padding: 40px 20px;
+      }
+
+      .gallery {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 16px;
+      }
+
+      .page-title {
+        font-size: 28px;
+      }
+
+      .item-title {
+        font-size: 14px;
+      }
+
+      .page-header {
+        margin-bottom: 30px;
+      }
+
+      footer {
+        padding: 30px 20px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .gallery {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+      }
+
+      .gallery-item {
+        padding: 16px;
+      }
+
+      .page-title {
+        font-size: 24px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .spinner {
+        animation: none;
+      }
+
+      .gallery-item {
+        animation: none;
+        opacity: 1;
+        transform: none !important;
+      }
+
+      .gallery-item:hover {
+        transform: none;
+      }
+
+      .item-footer::after {
+        transition: none;
+      }
+    }
+  </style>
 </head>
 <body>
-  <header class="hero">
-    <div class="hero-content">
-      <h1 class="logo">
-        <span class="logo-icon">🎨</span>
-        <span class="logo-text">autonomousART</span>
-      </h1>
-      <p class="tagline">Exploring the latent space of generative art</p>
-      <p class="subtitle">AI-guided creative visualizations • New pieces every 6 hours</p>
+  <header>
+    <div class="header-content">
+      <a href="index.html" class="logo">autonomousART</a>
+      <div class="header-info">
+        <span>Generated every 6 hours</span>
+        <span id="artwork-count">Loading...</span>
+        <a href="index.html" class="btn-home">← Latest</a>
+      </div>
     </div>
   </header>
 
-  <main class="content">
-    <section class="gallery-section">
-      <div class="section-header">
-        <h2>Gallery</h2>
-        <span class="artwork-count" id="artwork-count"></span>
+  <main>
+    <div class="page-header">
+      <h1 class="page-title">Gallery</h1>
+      <p class="page-subtitle">
+        Explore all <span class="stat-badge" id="badge-count">0</span> artworks
+      </p>
+    </div>
+
+    <div class="gallery" id="gallery">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p class="loading-text">Loading artworks...</p>
       </div>
-      
-      <div id="gallery-grid" class="gallery-grid">
-        <div class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>Loading artworks...</p>
-        </div>
-      </div>
-    </section>
+    </div>
   </main>
 
-  <footer class="footer">
-    <p>Generated autonomously every 4 hours with Ollama</p>
-    <p>
-      <a href="index.html" target="_self">← Back to Latest</a>
-      <span class="separator">•</span>
+  <footer>
+    <p>autonomousART • AI-powered generative art gallery</p>
+    <p style="margin-top: 12px;">
       <a href="https://github.com/vkumar-dev/autonomousART" target="_blank" rel="noopener noreferrer">GitHub</a>
     </p>
   </footer>
 
-  <script src="scripts/gallery.js"></script>
+  <script>
+    class Gallery {
+      constructor() {
+        this.artworks = [];
+        this.galleryEl = document.getElementById('gallery');
+        this.init();
+      }
+
+      async init() {
+        try {
+          await this.loadArtworks();
+          this.renderArtworks();
+        } catch (error) {
+          console.error('Failed to load gallery:', error);
+          this.renderError();
+        }
+      }
+
+      async loadArtworks() {
+        const response = await fetch('artworks-list.json?t=' + Date.now());
+        if (!response.ok) throw new Error('Failed to load artworks');
+
+        const files = await response.json();
+        
+        this.artworks = files
+          .filter(f => f.endsWith('.html'))
+          .map(filename => this.parseArtwork(filename));
+      }
+
+      parseArtwork(filename) {
+        const match = filename.match(/^(\d{8})-(\d{6})-(.+)\.html$/);
+        if (!match) return null;
+
+        const [, dateStr, timeStr, slug] = match;
+        const year = dateStr.substring(0, 4);
+        const month = dateStr.substring(4, 6);
+        const day = dateStr.substring(6, 8);
+
+        const date = new Date(year, parseInt(month) - 1, day);
+        const title = slug
+          .split('-')
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
+
+        return {
+          filename,
+          title,
+          date,
+          path: `artworks/${filename}`
+        };
+      }
+
+      renderArtworks() {
+        const valid = this.artworks.filter(a => a !== null);
+        
+        if (valid.length === 0) {
+          this.renderEmpty();
+          return;
+        }
+
+        this.galleryEl.innerHTML = valid
+          .map((art, idx) => this.createCard(art, idx))
+          .join('');
+
+        // Update counts
+        const count = valid.length;
+        document.getElementById('artwork-count').textContent = `${count} artwork${count !== 1 ? 's' : ''}`;
+        document.getElementById('badge-count').textContent = count;
+      }
+
+      createCard(artwork, index) {
+        const dateStr = artwork.date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+
+        return `
+          <a href="${artwork.path}" class="gallery-item" style="animation-delay: ${Math.min(index * 30, 300)}ms" title="${this.escapeHtml(artwork.title)}" target="_blank">
+            <div class="item-number">#${index + 1}</div>
+            <div class="item-meta">
+              <span class="item-badge">✨ AI Art</span>
+              <span class="item-date">${dateStr}</span>
+            </div>
+            <h3 class="item-title">${this.escapeHtml(artwork.title)}</h3>
+            <div class="item-footer">
+              <span>View</span>
+            </div>
+          </a>
+        `;
+      }
+
+      renderEmpty() {
+        this.galleryEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🎨</div>
+            <h3>No artworks yet</h3>
+            <p>The AI is creating its first masterpiece. Check back soon!</p>
+          </div>
+        `;
+      }
+
+      renderError() {
+        this.galleryEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">⚠️</div>
+            <h3>Unable to load gallery</h3>
+            <p>Please refresh the page or check back later.</p>
+          </div>
+        `;
+      }
+
+      escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      new Gallery();
+    });
+  </script>
 </body>
 </html>

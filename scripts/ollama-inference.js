@@ -1,11 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * Ollama Inference Module
- * Clean interface for generating content via Ollama
- * Handles connection, error handling, and NO fallback
- */
-
 const fetch = require('node-fetch');
 
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
@@ -15,21 +9,14 @@ class OllamaInference {
   constructor(url = OLLAMA_URL, model = OLLAMA_MODEL) {
     this.url = url;
     this.model = model;
-    this.timeout = 600000; // 10 minutes for generation
+    this.timeout = 600000;
   }
 
-  /**
-   * Check if Ollama service is available (with retries)
-   */
   async isAvailable(retries = 3) {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const response = await fetch(`${this.url}/api/tags`, { 
-          timeout: 5000 
-        });
-        if (response.ok) {
-          return true;
-        }
+        const response = await fetch(`${this.url}/api/tags`, { timeout: 5000 });
+        if (response.ok) return true;
       } catch (error) {
         if (attempt < retries) {
           console.log(`  Retry ${attempt}/${retries}: ${error.message}`);
@@ -41,9 +28,6 @@ class OllamaInference {
     return false;
   }
 
-  /**
-   * Generate content using Ollama
-   */
   async generate(prompt, options = {}) {
     const {
       temperature = 0.7,
@@ -81,7 +65,6 @@ class OllamaInference {
       }
 
       const data = await response.json();
-
       if (!data.response) {
         throw new Error('Empty response from Ollama');
       }
@@ -109,15 +92,10 @@ class OllamaInference {
     }
   }
 
-  /**
-   * Check model availability
-   */
   async modelExists() {
     try {
       const response = await fetch(`${this.url}/api/tags`);
-      if (!response.ok) {
-        return false;
-      }
+      if (!response.ok) return false;
 
       const data = await response.json();
       const models = data.models || [];
@@ -128,16 +106,10 @@ class OllamaInference {
     }
   }
 
-  /**
-   * Get available models
-   */
   async listModels() {
     try {
       const response = await fetch(`${this.url}/api/tags`);
-      if (!response.ok) {
-        throw new Error('Failed to list models');
-      }
-
+      if (!response.ok) throw new Error('Failed to list models');
       const data = await response.json();
       return data.models || [];
     } catch (error) {
@@ -147,5 +119,4 @@ class OllamaInference {
   }
 }
 
-// Export for use in other modules
 module.exports = OllamaInference;

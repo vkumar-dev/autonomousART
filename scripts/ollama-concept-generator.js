@@ -1,10 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * Ollama Concept Generator for autonomousART
- * Uses local Ollama instance to generate unique art concepts
- */
-
 const fs = require('fs');
 const path = require('path');
 const OllamaInference = require('./ollama-inference');
@@ -42,9 +37,7 @@ const EMOTIONAL_TONES = [
 ];
 
 function getConceptHistory() {
-  if (!fs.existsSync(HISTORY_FILE)) {
-    return [];
-  }
+  if (!fs.existsSync(HISTORY_FILE)) return [];
   try {
     const data = JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf8'));
     return data.concepts || [];

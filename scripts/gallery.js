@@ -1,12 +1,7 @@
-/**
- * Gallery Script
- * Loads and displays artworks from the gallery
- */
-
 class Gallery {
   constructor() {
     this.artworks = [];
-    this.galleryGrid = document.getElementById('gallery-grid');
+    this.galleryEl = document.getElementById('gallery');
     this.init();
   }
 
@@ -20,37 +15,20 @@ class Gallery {
     }
   }
 
-  /**
-   * Load artworks list
-   */
   async loadArtworks() {
     const response = await fetch('artworks-list.json');
-    
-    if (!response.ok) {
-      throw new Error(`Failed to load artworks: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`Failed to load artworks: ${response.status}`);
     
     const files = await response.json();
-    
-    // Parse artwork metadata from filenames
     this.artworks = files
       .filter(f => f.endsWith('.html'))
       .sort((a, b) => b.localeCompare(a))
-      .map(filename => this.parseArtworkFile(filename));
-    
-    console.log(`[Gallery] Loaded ${this.artworks.length} artworks`);
+      .map(filename => this.parseArtwork(filename));
   }
 
-  /**
-   * Parse artwork metadata from filename
-   */
-  parseArtworkFile(filename) {
-    // Filename format: YYYYMMDD-HHMMSS-title-slug.html
+  parseArtwork(filename) {
     const match = filename.match(/^(\d{8})-(\d{6})-(.+)\.html$/);
-    
-    if (!match) {
-      return null;
-    }
+    if (!match) return null;
     
     const [, dateStr, timeStr, slug] = match;
     const year = dateStr.substring(0, 4);
@@ -63,7 +41,6 @@ class Gallery {
     const isoDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}Z`;
     const date = new Date(isoDate);
     
-    // Convert slug back to title
     const title = slug
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -73,39 +50,32 @@ class Gallery {
       filename,
       title,
       date: date.toISOString(),
-      slug,
       path: `artworks/${filename}`
     };
   }
 
-  /**
-   * Render artworks to gallery
-   */
   renderArtworks() {
-    if (!this.galleryGrid) return;
+    if (!this.galleryEl) return;
 
-    const validArtworks = this.artworks.filter(a => a !== null);
-
-    if (validArtworks.length === 0) {
-      this.renderEmptyState();
+    const valid = this.artworks.filter(a => a !== null);
+    if (valid.length === 0) {
+      this.renderEmpty();
       return;
     }
 
-    this.galleryGrid.innerHTML = validArtworks
-      .map((artwork, index) => this.createArtworkCard(artwork, index))
+    this.galleryEl.innerHTML = valid
+      .map((artwork, index) => this.createCard(artwork, index))
       .join('');
     
-    // Update count
-    const countElement = document.getElementById('artwork-count');
-    if (countElement) {
-      countElement.textContent = `${validArtworks.length} artwork${validArtworks.length !== 1 ? 's' : ''}`;
-    }
+    const count = valid.length;
+    const countEl = document.getElementById('artwork-count');
+    if (countEl) countEl.textContent = `${count} artwork${count !== 1 ? 's' : ''}`;
+    
+    const badgeEl = document.getElementById('badge-count');
+    if (badgeEl) badgeEl.textContent = count;
   }
 
-  /**
-   * Create artwork card HTML
-   */
-  createArtworkCard(artwork, index) {
+  createCard(artwork, index) {
     const date = new Date(artwork.date);
     const formattedDate = date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -113,58 +83,43 @@ class Gallery {
       day: 'numeric'
     });
 
-    // Detect art type from filename
-    const isImage = artwork.filename.endsWith('.png');
-    const typeLabel = isImage ? '🖼️ AI Image' : '💻 Code';
-    const typeClass = isImage ? 'image-type' : 'code-type';
-
     return `
-      <a href="${artwork.path}" class="artwork-card" style="animation-delay:${Math.min(index * 35, 400)}ms" title="${this.escapeHtml(artwork.title)}" target="_blank">
-        <div class="artwork-meta">
-          <span class="artwork-type ${typeClass}">${typeLabel}</span>
-          <span class="artwork-date">${formattedDate}</span>
+      <a href="${artwork.path}" class="gallery-item" style="animation-delay:${Math.min(index * 30, 300)}ms" title="${this.escapeHtml(artwork.title)}" target="_blank">
+        <div class="item-number">#${index + 1}</div>
+        <div class="item-meta">
+          <span class="item-badge">✨ AI Art</span>
+          <span class="item-date">${formattedDate}</span>
         </div>
-        <h3 class="artwork-title">${this.escapeHtml(artwork.title)}</h3>
-        <div class="artwork-footer">
-          View artwork →
+        <h3 class="item-title">${this.escapeHtml(artwork.title)}</h3>
+        <div class="item-footer">
+          <span>View</span>
         </div>
       </a>
     `;
   }
 
-  /**
-   * Render empty state
-   */
-  renderEmptyState() {
-    if (!this.galleryGrid) return;
-
-    this.galleryGrid.innerHTML = `
+  renderEmpty() {
+    if (!this.galleryEl) return;
+    this.galleryEl.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">🎨</div>
+        <div class="empty-icon">🎨</div>
         <h3>No artworks yet</h3>
         <p>The AI is creating its first masterpiece. Check back soon!</p>
       </div>
     `;
   }
 
-  /**
-   * Render error state
-   */
   renderError() {
-    if (!this.galleryGrid) return;
-
-    this.galleryGrid.innerHTML = `
+    if (!this.galleryEl) return;
+    this.galleryEl.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">⚠️</div>
+        <div class="empty-icon">⚠️</div>
         <h3>Unable to load gallery</h3>
         <p>Please refresh the page or check back later.</p>
       </div>
     `;
   }
 
-  /**
-   * Escape HTML
-   */
   escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -172,7 +127,6 @@ class Gallery {
   }
 }
 
-// Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  window.gallery = new Gallery();
+  new Gallery();
 });
