@@ -1,23 +1,23 @@
-name: Generate Art with Ollama
+name: Generate Art
 
 on:
   schedule:
-    - cron: '0 */4 * * *'
+    - cron: '0 */6 * * *'
   workflow_dispatch:
-  push:
-    branches: [ master ]
-    paths:
-      - 'package.json'
 
 permissions:
   contents: write
-  id-token: write
   pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  generate-art:
+  generate-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -31,139 +31,67 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Install Node.js dependencies
-        run: |
-          npm install
+      - name: Install dependencies
+        run: npm install
 
-      - name: Install Ollama
-        run: |
-          echo "📦 Installing Ollama..."
-          curl -fsSL https://ollama.ai/install.sh | sh
-          which ollama
-          echo "✅ Ollama installed"
-
-      - name: Start Ollama service
-        run: |
-          echo "🚀 Starting Ollama service..."
-          # Start ollama in background with output redirected
-          nohup ollama serve > /tmp/ollama.log 2>&1 &
-          OLLAMA_PID=$!
-          echo "OLLAMA_PID=$OLLAMA_PID" >> $GITHUB_ENV
-          echo "Ollama started with PID: $OLLAMA_PID"
-          
-          # Wait for service to be ready
-          for i in {1..60}; do
-            if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
-              echo "✅ Ollama service ready at $(date)"
-              break
-            fi
-            if [ $i -eq 60 ]; then
-              echo "❌ Ollama failed to start after 60 attempts"
-              tail -50 /tmp/ollama.log
-              exit 1
-            fi
-            echo "⏳ Waiting for Ollama... ($i/60)"
-            sleep 2
-          done
-
-      - name: Pull and prepare Ollama models
-        timeout-minutes: 15
-        run: |
-          echo "📥 Pulling mistral model (reliable for structured output)..."
-          # Pull mistral - more reliable for structured output
-          timeout 900 ollama pull mistral || {
-            echo "⚠️  Failed to pull mistral, trying llama3.2..."
-            timeout 600 ollama pull llama3.2 || {
-              echo "⚠️  Failed to pull llama3.2, trying tinyllama..."
-              timeout 300 ollama pull tinyllama || true
-            }
-          }
-
-          echo ""
-          echo "✅ Model pull complete"
-          echo ""
-          echo "📋 Available models:"
-          curl -s http://localhost:11434/api/tags || echo "API not ready yet"
-
-      - name: Pre-generation health check
-        run: |
-          echo "🏥 Checking Ollama health before generation..."
-          echo "Checking service..."
-          curl -v http://localhost:11434/api/tags 2>&1 | head -30
-          
-          echo ""
-          echo "Checking process..."
-          ps aux | grep ollama | grep -v grep || echo "⚠️  Ollama process not found!"
-          
-          echo ""
-          echo "Checking logs..."
-          tail -20 /tmp/ollama.log
-
-      - name: Generate art concept with Ollama
-        timeout-minutes: 15
+      - name: Generate art concept
         env:
-          OLLAMA_MODEL: mistral
-          OLLAMA_URL: http://127.0.0.1:11434
-          OLLAMA_PID: ${{ env.OLLAMA_PID }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          echo "✍️  Generating art concept with Ollama..."
-          echo "OLLAMA_PID from env: $OLLAMA_PID"
-          echo "Checking if ollama is still running..."
-          ps aux | grep ollama | grep -v grep || echo "⚠️  Ollama process not found!"
-
-          EXIT_CODE=0
-          timeout 600 node scripts/ollama-concept-generator.js || EXIT_CODE=$?
-          if [ "$EXIT_CODE" -ne 0 ] && [ "$EXIT_CODE" -ne 124 ]; then
-            echo "❌ Concept generation failed"
-            exit 1
-          fi
-          echo "✅ Concept generation complete"
+          echo "🎨 Generating art concept..."
+          node scripts/concept-selector.js
 
       - name: Generate artwork
-        timeout-minutes: 10
         run: |
-          echo "🎨 Generating artwork..."
+          echo "🖼️  Generating artwork..."
           node scripts/art-generator.js
-          echo "✅ Artwork generation complete"
 
-      - name: Build gallery index
+      - name: Build gallery
         run: |
-          echo "📋 Building gallery index..."
+          echo "📋 Building gallery..."
           node scripts/build-gallery.js
-          echo "✅ Gallery index built"
 
       - name: Configure Git
         run: |
-          git config --global user.name 'autonomousART Bot'
-          git config --global user.email 'autonomousart@github-actions.local'
+          git config user.name 'autonomousART Bot'
+          git config user.email 'autonomousart@github-actions.local'
 
-      - name: Commit and push artwork
+      - name: Commit artwork
         run: |
           git add artworks/ artworks-list.json concept-history.json
-
+          
           if git diff --staged --quiet; then
             echo "ℹ️  No changes to commit"
             exit 0
           fi
-
-          # Commit without [skip ci] - deploy workflow will trigger automatically
-          git commit -m "🎨 Auto-generated artwork: $(date -u +%Y-%m-%d)"
-
+          
+          git commit -m "🎨 [AUTO] New artwork: $(date -u +%Y-%m-%d)"
+          
           if git push origin master; then
             echo "✅ Artwork committed and pushed"
           else
-            echo "⚠️  Push failed (may need to pull first)"
+            echo "⚠️  Push failed, attempting rebase"
             git pull --rebase origin master
             git push origin master
           fi
 
-      - name: Show summary
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Summary
         if: always()
         run: |
-          echo "📊 Workflow Summary:"
-          echo "   Model: mistral"
-          echo "   Service: Ollama"
+          echo "📊 Workflow Summary"
           echo "   Status: Complete"
-          echo "   Deploy: Will run automatically via push trigger"
+          echo "   Deployed to: ${{ steps.deployment.outputs.page_url }}"
