@@ -141,7 +141,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 24px;
-      margin-bottom: 80px;
+      margin-bottom: 50px;
     }
 
     .gallery-item {
@@ -149,7 +149,6 @@
       cursor: pointer;
       text-decoration: none;
       color: inherit;
-      group: "gallery";
       border-radius: 8px;
       overflow: hidden;
       aspect-ratio: 1;
@@ -320,6 +319,67 @@
       color: rgba(255, 255, 255, 0.5);
     }
 
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-top: 60px;
+      flex-wrap: wrap;
+    }
+
+    .pagination-info {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+      text-align: center;
+      flex: 1 100%;
+      margin-bottom: 12px;
+    }
+
+    .pagination button,
+    .pagination a {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 40px;
+    }
+
+    .pagination button:hover:not(:disabled),
+    .pagination a:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .pagination button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .pagination .page-number {
+      background: rgba(247, 37, 133, 0.15);
+      border-color: rgba(247, 37, 133, 0.3);
+      color: #f72585;
+      font-weight: 600;
+    }
+
+    .pagination button[aria-current="page"] {
+      background: rgba(247, 37, 133, 0.15);
+      border-color: rgba(247, 37, 133, 0.3);
+      color: #f72585;
+      font-weight: 600;
+    }
+
     /* Footer */
     footer {
       border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -378,6 +438,17 @@
       footer {
         padding: 30px 20px;
       }
+
+      .pagination {
+        gap: 8px;
+      }
+
+      .pagination button,
+      .pagination a {
+        padding: 8px 12px;
+        font-size: 11px;
+        min-width: 36px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -392,6 +463,13 @@
 
       .page-title {
         font-size: 24px;
+      }
+
+      .pagination button,
+      .pagination a {
+        padding: 6px 10px;
+        font-size: 10px;
+        min-width: 32px;
       }
     }
 
@@ -442,6 +520,8 @@
         <p class="loading-text">Loading artworks...</p>
       </div>
     </div>
+
+    <div class="pagination" id="pagination"></div>
   </main>
 
   <footer>
@@ -456,13 +536,16 @@
       constructor() {
         this.artworks = [];
         this.galleryEl = document.getElementById('gallery');
+        this.paginationEl = document.getElementById('pagination');
+        this.itemsPerPage = 10;
+        this.currentPage = 1;
         this.init();
       }
 
       async init() {
         try {
           await this.loadArtworks();
-          this.renderArtworks();
+          this.render();
         } catch (error) {
           console.error('Failed to load gallery:', error);
           this.renderError();
@@ -471,39 +554,44 @@
 
       async loadArtworks() {
         const response = await fetch('artworks-list.json?t=' + Date.now());
-        if (!response.ok) throw new Error('Failed to load artworks');
-
-        const files = await response.json();
+        if (!response.ok) throw new Error(`Failed to load artworks: ${response.status}`);
         
+        const files = await response.json();
         this.artworks = files
           .filter(f => f.endsWith('.html'))
+          .sort((a, b) => b.localeCompare(a))
           .map(filename => this.parseArtwork(filename));
       }
 
       parseArtwork(filename) {
         const match = filename.match(/^(\d{8})-(\d{6})-(.+)\.html$/);
         if (!match) return null;
-
+        
         const [, dateStr, timeStr, slug] = match;
         const year = dateStr.substring(0, 4);
         const month = dateStr.substring(4, 6);
         const day = dateStr.substring(6, 8);
-
-        const date = new Date(year, parseInt(month) - 1, day);
+        const hours = timeStr.substring(0, 2);
+        const minutes = timeStr.substring(2, 4);
+        const seconds = timeStr.substring(4, 6);
+        
+        const isoDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}Z`;
+        const date = new Date(isoDate);
+        
         const title = slug
           .split('-')
-          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
           .join(' ');
-
+        
         return {
           filename,
           title,
-          date,
+          date: date.toISOString(),
           path: `artworks/${filename}`
         };
       }
 
-      renderArtworks() {
+      render() {
         const valid = this.artworks.filter(a => a !== null);
         
         if (valid.length === 0) {
@@ -511,29 +599,41 @@
           return;
         }
 
-        this.galleryEl.innerHTML = valid
-          .map((art, idx) => this.createCard(art, idx))
-          .join('');
+        this.renderArtworks(valid);
+        this.renderPagination(valid.length);
 
-        // Update counts
         const count = valid.length;
-        document.getElementById('artwork-count').textContent = `${count} artwork${count !== 1 ? 's' : ''}`;
-        document.getElementById('badge-count').textContent = count;
+        const countEl = document.getElementById('artwork-count');
+        if (countEl) countEl.textContent = `${count} artwork${count !== 1 ? 's' : ''}`;
+        
+        const badgeEl = document.getElementById('badge-count');
+        if (badgeEl) badgeEl.textContent = count;
       }
 
-      createCard(artwork, index) {
-        const dateStr = artwork.date.toLocaleDateString('en-US', {
+      renderArtworks(artworks) {
+        const start = (this.currentPage - 1) * this.itemsPerPage;
+        const end = start + this.itemsPerPage;
+        const pageArtworks = artworks.slice(start, end);
+
+        this.galleryEl.innerHTML = pageArtworks
+          .map((artwork, idx) => this.createCard(artwork, start + idx + 1))
+          .join('');
+      }
+
+      createCard(artwork, number) {
+        const date = new Date(artwork.date);
+        const formattedDate = date.toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'short',
           day: 'numeric'
         });
 
         return `
-          <a href="${artwork.path}" class="gallery-item" style="animation-delay: ${Math.min(index * 30, 300)}ms" title="${this.escapeHtml(artwork.title)}" target="_blank">
-            <div class="item-number">#${index + 1}</div>
+          <a href="${artwork.path}" class="gallery-item" style="animation-delay: ${Math.min((number % this.itemsPerPage) * 30, 300)}ms" title="${this.escapeHtml(artwork.title)}" target="_blank">
+            <div class="item-number">#${number}</div>
             <div class="item-meta">
               <span class="item-badge">✨ AI Art</span>
-              <span class="item-date">${dateStr}</span>
+              <span class="item-date">${formattedDate}</span>
             </div>
             <h3 class="item-title">${this.escapeHtml(artwork.title)}</h3>
             <div class="item-footer">
@@ -541,6 +641,51 @@
             </div>
           </a>
         `;
+      }
+
+      renderPagination(totalItems) {
+        const totalPages = Math.ceil(totalItems / this.itemsPerPage);
+        
+        if (totalPages <= 1) {
+          this.paginationEl.innerHTML = '';
+          return;
+        }
+
+        let html = `<div class="pagination-info">Page ${this.currentPage} of ${totalPages}</div>`;
+
+        if (this.currentPage > 1) {
+          html += `<button onclick="window.gallery.goToPage(1)">« First</button>`;
+          html += `<button onclick="window.gallery.goToPage(${this.currentPage - 1})">‹ Prev</button>`;
+        } else {
+          html += `<button disabled>« First</button>`;
+          html += `<button disabled>‹ Prev</button>`;
+        }
+
+        for (let i = 1; i <= totalPages; i++) {
+          if (i === this.currentPage) {
+            html += `<button class="page-number" aria-current="page">${i}</button>`;
+          } else if (i <= 3 || i > totalPages - 3 || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) {
+            html += `<button class="page-number" onclick="window.gallery.goToPage(${i})">${i}</button>`;
+          } else if (i === 4 || i === totalPages - 3) {
+            html += `<span style="color: rgba(255,255,255,0.3);">…</span>`;
+          }
+        }
+
+        if (this.currentPage < totalPages) {
+          html += `<button onclick="window.gallery.goToPage(${this.currentPage + 1})">Next ›</button>`;
+          html += `<button onclick="window.gallery.goToPage(${totalPages})">Last »</button>`;
+        } else {
+          html += `<button disabled>Next ›</button>`;
+          html += `<button disabled>Last »</button>`;
+        }
+
+        this.paginationEl.innerHTML = html;
+      }
+
+      goToPage(pageNum) {
+        this.currentPage = pageNum;
+        this.render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
       renderEmpty() {
@@ -571,7 +716,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      new Gallery();
+      window.gallery = new Gallery();
     });
   </script>
 </body>
