@@ -17,7 +17,7 @@ concurrency:
 jobs:
   generate-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -36,16 +36,54 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Generate art concept
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - name: Install Ollama
         run: |
-          echo "🎨 Generating art concept..."
-          node scripts/concept-selector.js
+          echo "📦 Installing Ollama..."
+          curl -fsSL https://ollama.ai/install.sh | sh
+          echo "✅ Ollama installed"
+
+      - name: Start Ollama service
+        run: |
+          echo "🚀 Starting Ollama service..."
+          nohup ollama serve > /tmp/ollama.log 2>&1 &
+          OLLAMA_PID=$!
+          echo "OLLAMA_PID=$OLLAMA_PID" >> $GITHUB_ENV
+          echo "Ollama PID: $OLLAMA_PID"
+          
+          for i in {1..30}; do
+            if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+              echo "✅ Ollama ready"
+              break
+            fi
+            echo "⏳ Waiting... ($i/30)"
+            sleep 2
+          done
+
+      - name: Pull Ollama model
+        timeout-minutes: 10
+        run: |
+          echo "📥 Pulling mistral model..."
+          timeout 600 ollama pull mistral || {
+            echo "⚠️  Trying llama3.2..."
+            timeout 400 ollama pull llama3.2 || {
+              echo "⚠️  Trying tinyllama..."
+              timeout 200 ollama pull tinyllama || true
+            }
+          }
+          ollama list
+
+      - name: Generate art concept with Ollama
+        timeout-minutes: 10
+        env:
+          OLLAMA_URL: http://localhost:11434
+          OLLAMA_MODEL: mistral
+        run: |
+          echo "🎨 Generating concept with Ollama..."
+          node scripts/ollama-concept-generator.js
 
       - name: Generate artwork
         run: |
-          echo "🖼️  Generating artwork..."
+          echo "🖼️  Generating canvas art..."
           node scripts/art-generator.js
 
       - name: Build gallery
@@ -70,9 +108,8 @@ jobs:
           git commit -m "🎨 [AUTO] New artwork: $(date -u +%Y-%m-%d)"
           
           if git push origin master; then
-            echo "✅ Artwork committed and pushed"
+            echo "✅ Pushed successfully"
           else
-            echo "⚠️  Push failed, attempting rebase"
             git pull --rebase origin master
             git push origin master
           fi
@@ -92,6 +129,5 @@ jobs:
       - name: Summary
         if: always()
         run: |
-          echo "📊 Workflow Summary"
-          echo "   Status: Complete"
-          echo "   Deployed to: ${{ steps.deployment.outputs.page_url }}"
+          echo "📊 Workflow Complete"
+          echo "   Deployed: ${{ steps.deployment.outputs.page_url }}"
