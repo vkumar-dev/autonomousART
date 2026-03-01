@@ -10,13 +10,20 @@ function generateCanvasArt(concept) {
   const timestamp = generateTimestamp();
   const slug = generateSlug(concept.title);
   const filename = `${timestamp}-${slug}.html`;
-  const filepath = path.join(ARTWORKS_DIR, filename);
+  
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const dateFolder = path.join(ARTWORKS_DIR, year.toString(), month, day);
+  const filepath = path.join(dateFolder, filename);
 
-  fs.mkdirSync(ARTWORKS_DIR, { recursive: true });
+  fs.mkdirSync(dateFolder, { recursive: true });
   fs.writeFileSync(filepath, generateHTML(concept));
 
-  console.log(`✅ Artwork created: ${filename}`);
-  return { html: filename };
+  const relativePath = path.relative(ARTWORKS_DIR, filepath).replace(/\\/g, '/');
+  console.log(`✅ Artwork created: ${relativePath}`);
+  return { html: relativePath };
 }
 
 function generateHTML(concept) {
