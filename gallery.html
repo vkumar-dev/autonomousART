@@ -563,7 +563,9 @@
           .map(filename => this.parseArtwork(filename));
       }
 
-      parseArtwork(filename) {
+      parseArtwork(filepath) {
+        // Extract just the filename from the full path
+        const filename = filepath.split('/').pop();
         const match = filename.match(/^(\d{8})-(\d{6})-(.+)\.html$/);
         if (!match) return null;
         
@@ -587,7 +589,7 @@
           filename,
           title,
           date: date.toISOString(),
-          path: `artworks/${filename}`
+          path: `artworks/${filepath}`
         };
       }
 
