@@ -345,14 +345,19 @@
         if (artworks.length === 0) throw new Error('No artworks found');
 
         const latestFile = artworks[0];
-        
-        // Parse metadata from filename (format: YYYYMMDD-HHMMSS-title.html)
-        const parts = latestFile.replace('.html', '').split('-');
-        const dateStr = parts[0];
-        const title = parts.slice(2).join(' ')
-          .split('-')
-          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-          .join(' ');
+         
+         // Extract just the filename from the path (handles nested directories)
+         const filename = latestFile.split('/').pop();
+         
+         // Parse metadata from filename (format: YYYYMMDD-HHMMSS-title.html)
+         const match = filename.match(/^(\d{8})-(\d{6})-(.+)\.html$/);
+         if (!match) throw new Error('Invalid artwork filename format');
+         
+         const [, dateStr, timeStr, slug] = match;
+         const title = slug
+           .split('-')
+           .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+           .join(' ');
 
         // Format date
         const year = dateStr.substring(0, 4);
@@ -368,7 +373,7 @@
 
         // Load artwork in iframe
         const display = document.getElementById('artDisplay');
-        display.innerHTML = `<iframe src="artworks/${latestFile}"></iframe>`;
+        display.innerHTML = `<iframe src="artworks/${latestFile}" allow="autoplay; encrypted-media"></iframe>`;
 
         // Update overlay
         document.getElementById('artTitle').textContent = title;
