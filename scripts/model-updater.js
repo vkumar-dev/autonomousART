@@ -48,43 +48,44 @@ class ModelUpdater {
   async findLatestModels() {
     console.log('🔍 Checking latest open-weight models...\n');
     
-    // Curated list of latest 4B open-weight models (no auth required)
+    // Curated list of latest 4B+ open-weight models (no auth required)
     // Update this list manually as new models are released
     const latestModels = [
       {
-        name: 'mistral-latest',
-        source: 'mistralai/Mistral-Nemo-12B',
+        name: 'qwen3-4b',
+        source: 'Qwen/Qwen3-4B',
+        size: '4B',
+        released: '2025-04',
+        category: 'reasoning',
+        features: 'thinking mode, 32K context native'
+      },
+      {
+        name: 'qwen2.5-14b',
+        source: 'Qwen/Qwen2.5-14B-Instruct',
+        size: '14B',
+        released: '2024-09',
+        category: 'chat'
+      },
+      {
+        name: 'mistral-nemo',
+        source: 'mistralai/Mistral-Nemo-12B-Instruct',
         size: '12B',
         released: '2024-12',
         category: 'general'
       },
       {
-        name: 'llama3.1-latest',
-        source: 'meta-llama/Llama-3.1-8B',
+        name: 'llama3.1-8b',
+        source: 'meta-llama/Llama-3.1-8B-Instruct',
         size: '8B',
         released: '2024-07',
         category: 'general'
       },
       {
-        name: 'neural-chat',
+        name: 'neural-chat-7b',
         source: 'Intel/neural-chat-7b-v3-3',
         size: '7B',
         released: '2024-06',
         category: 'chat'
-      },
-      {
-        name: 'openhermes',
-        source: 'teknium/OpenHermes-2.5-Mistral-7B',
-        size: '7B',
-        released: '2024-05',
-        category: 'chat'
-      },
-      {
-        name: 'dolphin-mistral',
-        source: 'cognitivecomputations/dolphin-2.6-mistral-7b',
-        size: '7B',
-        released: '2024-04',
-        category: 'general'
       }
     ];
 
@@ -96,6 +97,7 @@ class ModelUpdater {
     console.log(`✅ Found ${sorted.length} latest models from curated list:\n`);
     sorted.forEach(m => {
       console.log(`   📦 ${m.name} (${m.size}) - ${m.source}`);
+      if (m.features) console.log(`      Features: ${m.features}`);
     });
 
     return sorted;
