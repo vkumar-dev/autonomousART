@@ -52,19 +52,28 @@ class ModelUpdater {
     // Update this list manually as new models are released
     const latestModels = [
       {
+        name: 'qwen3.5-4b',
+        source: 'Qwen/Qwen3.5-4B',
+        size: '4B',
+        released: '2026-02',
+        category: 'multimodal',
+        features: 'native multimodal, 262K context, gated delta networks'
+      },
+      {
+        name: 'qwen3.5-9b',
+        source: 'Qwen/Qwen3.5-9B',
+        size: '9B',
+        released: '2026-02',
+        category: 'reasoning',
+        features: 'beats GPT-OSS-120B, 262K context native'
+      },
+      {
         name: 'qwen3-4b',
         source: 'Qwen/Qwen3-4B',
         size: '4B',
         released: '2025-04',
         category: 'reasoning',
         features: 'thinking mode, 32K context native'
-      },
-      {
-        name: 'qwen2.5-14b',
-        source: 'Qwen/Qwen2.5-14B-Instruct',
-        size: '14B',
-        released: '2024-09',
-        category: 'chat'
       },
       {
         name: 'mistral-nemo',
@@ -79,13 +88,6 @@ class ModelUpdater {
         size: '8B',
         released: '2024-07',
         category: 'general'
-      },
-      {
-        name: 'neural-chat-7b',
-        source: 'Intel/neural-chat-7b-v3-3',
-        size: '7B',
-        released: '2024-06',
-        category: 'chat'
       }
     ];
 
