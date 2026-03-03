@@ -491,4 +491,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { generateArt };
+module.exports = { generateArt, generateCanvasArt, generateHTML };

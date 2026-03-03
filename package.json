@@ -16,7 +16,11 @@
     "prompts:list": "node scripts/prompt-manager.js --list",
     "prompts:tasks": "node scripts/prompt-manager.js --tasks",
     "prompts:show": "node scripts/prompt-manager.js --show",
-    "prompts:search": "node scripts/prompt-manager.js --search"
+    "prompts:search": "node scripts/prompt-manager.js --search",
+    "workflow:concept": "node scripts/workflow-executor.js --concept",
+    "workflow:full": "node scripts/workflow-executor.js --full",
+    "workflow:execute": "node scripts/workflow-executor.js --execute",
+    "workflow:history": "node scripts/workflow-executor.js --history"
   },
   "keywords": [
     "generative-art",
