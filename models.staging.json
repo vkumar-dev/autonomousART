@@ -1,0 +1,7 @@
+{
+  "candidates": [],
+  "status": "idle",
+  "testedAt": null,
+  "testResult": null,
+  "note": "This file holds model candidates during testing phase. Only promoted to models.config.json after successful test generation."
+}

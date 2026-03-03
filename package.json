@@ -8,7 +8,11 @@
     "generate-concept-ollama": "node scripts/ollama-concept-generator.js",
     "generate-art": "node scripts/art-generator.js",
     "build-gallery": "node scripts/build-gallery.js",
-    "generate-all": "npm run generate-concept-ollama && npm run generate-art && npm run build-gallery"
+    "generate-all": "npm run generate-concept-ollama && npm run generate-art && npm run build-gallery",
+    "update-models": "node scripts/model-updater.js",
+    "models:queue": "node scripts/git-model-queue.js --show",
+    "models:stats": "node scripts/git-model-queue.js --stats",
+    "models:history": "git log --oneline --follow -- models.config.json"
   },
   "keywords": [
     "generative-art",

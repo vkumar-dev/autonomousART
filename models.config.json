@@ -1,0 +1,20 @@
+{
+  "primaryModel": "mistral",
+  "lastUpdated": "2025-03-03T00:00:00Z",
+  "lastVerified": "2025-03-03T00:00:00Z",
+  "locked": false,
+  "metadata": {
+    "source": "mistralai/Mistral-7B-v0.1",
+    "size": "7B",
+    "tested": true,
+    "fallbackStrategy": "git_history"
+  },
+  "updateStrategy": {
+    "checkInterval": "weekly",
+    "maxCandidates": 2,
+    "requiresTest": true,
+    "testTimeout": 300,
+    "fallbackQueueDepth": 50
+  },
+  "note": "Only primaryModel is active. If it fails at runtime, OllamaInference will use GitModelQueue to try previous versions from git history indefinitely."
+}
