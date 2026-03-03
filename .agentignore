@@ -1,0 +1,27 @@
+# Auto-generated content - outside agent context
+artworks/
+node_modules/
+*.html
+gallery.html
+index.html
+index-full-catalog.html
+art-viewer.html
+
+# Generated data files
+artworks-list.json
+daily-sentiment.json
+selected-concept.json
+
+# Generated logs
+*.log
+model-update-log.json
+models.staging.json
+
+# Build artifacts
+.git/
+.github/
+dist/
+build/
+
+# Dependencies and cache
+package-lock.json
