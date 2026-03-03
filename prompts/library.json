@@ -1,0 +1,187 @@
+{
+  "version": "1.0",
+  "description": "Indexed prompt library for autonomousART workflow",
+  "lastUpdated": "2026-03-03T00:00:00Z",
+  "prompts": [
+    {
+      "id": 0,
+      "name": "concept_generator",
+      "task": "art-concept",
+      "description": "Generate unique art concepts with title, technique, colors, and tone",
+      "modelType": "7b+",
+      "template": "You are an art concept generator. Create ONE art concept in this exact format:\n\nTitle: [2-4 word name]\nConcept: [1-2 sentences describing the visual artwork]\nTechnique: [Pick one from: Fractal Mathematics, Particle Dynamics, Perlin Noise Landscapes, Generative Geometry, Cellular Automata, Color Theory, Interactive Physics, Abstract Expressionism]\nColors: [5 hex color codes separated by spaces]\nTone: [Pick one from: Hypnotic, Chaotic, Peaceful, Sacred, Mysterious, Energetic, Cosmic, Complex, Beautiful, Intricate, Thought-provoking, Surreal]\n\nOnly respond with these 5 lines, nothing else.",
+      "parameters": {
+        "temperature": 0.8,
+        "topP": 0.9,
+        "topK": 40,
+        "numPredict": 1500
+      },
+      "variables": [
+        "TECHNIQUE",
+        "TONE"
+      ],
+      "outputFormat": "structured_json",
+      "fields": [
+        "title",
+        "concept",
+        "technique",
+        "colors",
+        "tone"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "concept_refiner",
+      "task": "art-concept-refine",
+      "description": "Refine and enhance existing art concepts",
+      "modelType": "7b+",
+      "template": "You are an art concept refiner. Take the following concept and enhance it:\n\nCurrent Title: {{TITLE}}\nCurrent Concept: {{CONCEPT}}\nCurrent Technique: {{TECHNIQUE}}\n\nProvide an enhanced version with:\n- A more evocative title (2-4 words)\n- A more detailed concept description (2-3 sentences)\n- The same or improved technique\n- More sophisticated color palette (5 hex codes)\n- A deeper emotional tone\n\nFormat your response as:\nTitle: [new title]\nConcept: [enhanced description]\nTechnique: [technique]\nColors: [5 hex codes]\nTone: [emotional tone]",
+      "parameters": {
+        "temperature": 0.7,
+        "topP": 0.85,
+        "topK": 40,
+        "numPredict": 1200
+      },
+      "variables": [
+        "TITLE",
+        "CONCEPT",
+        "TECHNIQUE"
+      ],
+      "outputFormat": "structured_text",
+      "fields": [
+        "title",
+        "concept",
+        "technique",
+        "colors",
+        "tone"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "color_palette_generator",
+      "task": "color-palette",
+      "description": "Generate harmonious color palettes for art concepts",
+      "modelType": "4b+",
+      "template": "Generate a harmonious color palette for art with the following theme:\n\nTheme: {{THEME}}\nMood: {{MOOD}}\nBase Color: {{BASE_COLOR}}\n\nProvide exactly 5 hex color codes that work well together. Return only the hex codes, one per line.",
+      "parameters": {
+        "temperature": 0.6,
+        "topP": 0.8,
+        "topK": 40,
+        "numPredict": 200
+      },
+      "variables": [
+        "THEME",
+        "MOOD",
+        "BASE_COLOR"
+      ],
+      "outputFormat": "list",
+      "fields": [
+        "colors"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "title_generator",
+      "task": "title-generation",
+      "description": "Generate creative titles for art pieces",
+      "modelType": "4b+",
+      "template": "Generate 5 creative, evocative titles (2-4 words each) for an art piece with this description:\n\n{{DESCRIPTION}}\n\nThe titles should be poetic and memorable. Return only the titles, one per line.",
+      "parameters": {
+        "temperature": 0.85,
+        "topP": 0.9,
+        "topK": 50,
+        "numPredict": 300
+      },
+      "variables": [
+        "DESCRIPTION"
+      ],
+      "outputFormat": "list",
+      "fields": [
+        "titles"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "technique_suggester",
+      "task": "technique-suggestion",
+      "description": "Suggest art techniques based on concept description",
+      "modelType": "4b+",
+      "template": "Based on this art concept description, suggest 3 generative art techniques that would work well:\n\nConcept: {{CONCEPT}}\n\nFor each technique, provide:\n1. Technique name\n2. Why it works for this concept (one sentence)\n\nAvailable techniques: Fractal Mathematics, Particle Dynamics, Perlin Noise Landscapes, Generative Geometry, Cellular Automata, Color Theory, Interactive Physics, Abstract Expressionism",
+      "parameters": {
+        "temperature": 0.7,
+        "topP": 0.85,
+        "topK": 40,
+        "numPredict": 500
+      },
+      "variables": [
+        "CONCEPT"
+      ],
+      "outputFormat": "structured_text",
+      "fields": [
+        "technique",
+        "reasoning"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "emotion_analyzer",
+      "task": "emotion-analysis",
+      "description": "Analyze emotional tone and suggest matching tones",
+      "modelType": "4b+",
+      "template": "Analyze the emotional tone of this art concept and suggest 3 matching emotional tones:\n\nConcept: {{CONCEPT}}\nCurrent Tone: {{CURRENT_TONE}}\n\nProvide:\n1. Analysis of the current tone\n2. 3 alternative tones that would enhance the concept\n3. Brief explanation for each suggestion\n\nAvailable tones: Hypnotic, Chaotic, Peaceful, Sacred, Mysterious, Energetic, Cosmic, Complex, Beautiful, Intricate, Thought-provoking, Surreal",
+      "parameters": {
+        "temperature": 0.75,
+        "topP": 0.85,
+        "topK": 40,
+        "numPredict": 600
+      },
+      "variables": [
+        "CONCEPT",
+        "CURRENT_TONE"
+      ],
+      "outputFormat": "structured_text",
+      "fields": [
+        "analysis",
+        "suggestions"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "art-concept",
+      "name": "Generate Art Concept",
+      "prompts": [0],
+      "description": "Create a new art concept from scratch"
+    },
+    {
+      "id": "art-concept-refine",
+      "name": "Refine Art Concept",
+      "prompts": [1],
+      "description": "Enhance an existing concept"
+    },
+    {
+      "id": "color-palette",
+      "name": "Generate Color Palette",
+      "prompts": [2],
+      "description": "Create harmonious colors"
+    },
+    {
+      "id": "title-generation",
+      "name": "Generate Titles",
+      "prompts": [3],
+      "description": "Create creative titles"
+    },
+    {
+      "id": "technique-suggestion",
+      "name": "Suggest Techniques",
+      "prompts": [4],
+      "description": "Find matching art techniques"
+    },
+    {
+      "id": "emotion-analysis",
+      "name": "Analyze Emotions",
+      "prompts": [5],
+      "description": "Analyze and suggest emotional tones"
+    }
+  ]
+}

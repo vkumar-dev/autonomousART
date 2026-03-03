@@ -12,7 +12,11 @@
     "update-models": "node scripts/model-updater.js",
     "models:queue": "node scripts/git-model-queue.js --show",
     "models:stats": "node scripts/git-model-queue.js --stats",
-    "models:history": "git log --oneline --follow -- models.config.json"
+    "models:history": "git log --oneline --follow -- models.config.json",
+    "prompts:list": "node scripts/prompt-manager.js --list",
+    "prompts:tasks": "node scripts/prompt-manager.js --tasks",
+    "prompts:show": "node scripts/prompt-manager.js --show",
+    "prompts:search": "node scripts/prompt-manager.js --search"
   },
   "keywords": [
     "generative-art",
