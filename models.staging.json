@@ -1,7 +1,34 @@
 {
-  "candidates": [],
-  "status": "idle",
+  "candidates": [
+    {
+      "rank": "primary",
+      "name": "qwen35-4b",
+      "source": "qwen3.5-4b",
+      "discovered": "2026-03-08T02:26:16.323Z",
+      "size": "4B"
+    },
+    {
+      "rank": "fallback",
+      "name": "qwen35-9b",
+      "source": "qwen3.5-9b",
+      "discovered": "2026-03-08T02:26:16.323Z",
+      "size": "9B"
+    }
+  ],
+  "status": "verified",
   "testedAt": null,
-  "testResult": null,
-  "note": "This file holds model candidates during testing phase. Only promoted to models.config.json after successful test generation."
+  "testResult": [
+    {
+      "model": "qwen35-4b",
+      "tested": false,
+      "reason": "Not available locally",
+      "status": "pending_pull"
+    },
+    {
+      "model": "qwen35-9b",
+      "tested": false,
+      "reason": "Not available locally",
+      "status": "pending_pull"
+    }
+  ]
 }
