@@ -4,14 +4,14 @@
       "rank": "primary",
       "name": "qwen35-4b",
       "source": "qwen3.5-4b",
-      "discovered": "2026-03-08T02:26:16.323Z",
+      "discovered": "2026-03-15T02:38:55.607Z",
       "size": "4B"
     },
     {
       "rank": "fallback",
       "name": "qwen35-9b",
       "source": "qwen3.5-9b",
-      "discovered": "2026-03-08T02:26:16.323Z",
+      "discovered": "2026-03-15T02:38:55.608Z",
       "size": "9B"
     }
   ],
