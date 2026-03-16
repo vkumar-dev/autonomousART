@@ -5,8 +5,8 @@
 ## Features
 
 - **🤖 Autonomous Generation**: Creates new art pieces every 6 hours via GitHub Actions
-- **🖼️ Ollama Image Generation**: Generate actual PNG images using Ollama's image models (stable-diffusion, flux, playground-v2.5)
-- **💭 AI-Driven Concepts**: Each piece is conceptually guided by AI prompts
+- **🎭 Diverse Art Styles**: Multiple generative art techniques (fractals, particle systems, noise, geometric patterns)
+- **💭 AI-Driven Concepts**: Each piece is conceptually guided by Ollama AI prompts
 - **📄 GitHub Pages**: Auto-deploys to GitHub Pages
 
 ## How It Works
@@ -14,9 +14,9 @@
 ```
 GitHub Actions (Every 6 Hours)
     ↓
-Generate Art Concept (AI-guided with Ollama text model)
+Generate Art Concept (Ollama text AI - tinyllama/llama3.2)
     ↓
-Generate PNG Image (Ollama image model: stable-diffusion/flux)
+Create HTML/Canvas Visualization (Fractals, Particles, Waves, etc.)
     ↓
 Commit & Push to Repository
     ↓
@@ -85,46 +85,29 @@ schedule:
   - cron: '30 */6 * * *'  # Change this (IST: +5:30 hours)
 ```
 
-### Ollama Image Generation
+### Manual Trigger
 
-The main workflow now generates **PNG images** using Ollama's image models.
-
-#### Models Available
-
-- `stable-diffusion` - Stable diffusion (default)
-- `flux` - High quality images
-- `playground-v2.5` - Playground AI model
-
-#### Manual Trigger (Anytime)
+Run the workflow manually with custom parameters:
 
 **Via GitHub UI:**
 1. Go to **Actions** → **Generate Art**
 2. Click **Run workflow**
-3. (Optional) Enter custom prompt and select model
+3. (Optional) Enter custom prompt and select style
 4. Click **Run workflow**
 
 **Via CLI:**
 ```bash
 gh workflow run generate-art.yml \
   --field prompt="cosmic nebula abstract art" \
-  --field model="stable-diffusion"
+  --field style="fractal"
 ```
 
-#### Local Generation
+### Art Styles
 
-```bash
-# Start Ollama
-ollama serve
-
-# Pull a model
-ollama pull stable-diffusion
-
-# Generate an image
-node scripts/ollama-image-gen.js --prompt "cosmic fractal art" --model stable-diffusion
-
-# Generate multiple images
-node scripts/ollama-image-gen.js --prompt "abstract nebula" --count 5
-```
+- `abstract` - Abstract expressionism with flowing shapes
+- `fractal` - Mandelbrot fract mathematics
+- `particle` - Particle dynamics and physics
+- `geometric` - Generative geometry patterns
 
 ## License
 

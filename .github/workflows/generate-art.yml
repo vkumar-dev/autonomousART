@@ -9,15 +9,16 @@ on:
         description: 'Description of the art to generate'
         required: false
         default: 'abstract cosmic nebula with vibrant colors, fractal patterns, digital art'
-      model:
-        description: 'Ollama image generation model'
+      style:
+        description: 'Art style'
         required: false
-        default: 'stable-diffusion'
+        default: 'abstract'
         type: choice
         options:
-          - stable-diffusion
-          - flux
-          - playground-v2.5
+          - abstract
+          - fractal
+          - geometric
+          - particle
 
 permissions:
   contents: write
@@ -31,7 +32,7 @@ concurrency:
 jobs:
   generate-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -60,113 +61,58 @@ jobs:
         run: |
           echo "🚀 Starting Ollama service..."
           nohup ollama serve > /tmp/ollama.log 2>&1 &
-          OLLAMA_PID=$!
-          echo "Ollama PID: $OLLAMA_PID"
-
+          sleep 5
           for i in {1..30}; do
             if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
               echo "✅ Ollama ready"
               break
             fi
-            echo "⏳ Waiting... ($i/30)"
             sleep 2
           done
 
-      - name: Pull image generation model
-        timeout-minutes: 20
+      - name: Pull text model for concept generation
+        timeout-minutes: 5
         run: |
-          MODEL="${{ github.event.inputs.model || 'stable-diffusion' }}"
-          echo "📥 Pulling $MODEL model..."
-          timeout 1200 ollama pull $MODEL || {
-            echo "⚠️  Trying fallback model..."
-            ollama pull stable-diffusion
-          }
+          echo "📥 Pulling tinyllama for concept generation..."
+          ollama pull tinyllama || ollama pull llama3.2 || true
           ollama list
 
-      - name: Generate art concept (optional text prompt)
+      - name: Generate art concept with Ollama
         timeout-minutes: 10
         continue-on-error: true
         env:
           OLLAMA_URL: http://localhost:11434
           OLLAMA_MODEL: tinyllama
         run: |
-          echo "🎨 Generating art concept..."
-          ollama pull tinyllama || true
-          node scripts/ollama-concept-generator.js || echo "⚠️  Concept generation skipped"
+          echo "🎨 Generating art concept with Ollama..."
+          node scripts/ollama-concept-generator.js || echo "⚠️ Concept generation skipped"
 
-      - name: Generate image with Ollama
-        timeout-minutes: 15
+      - name: Generate artwork (Canvas-based)
         run: |
-          echo "🖼️  Generating image with Ollama..."
+          echo "🖼️  Generating canvas art..."
           
-          # Get prompt from workflow input or use concept
-          if [ -n "${{ github.event.inputs.prompt }}" ]; then
-            PROMPT="${{ github.event.inputs.prompt }}"
-          elif [ -f selected-concept.json ]; then
-            PROMPT=$(node -e "const c=require('./selected-concept.json'); console.log(c.concept + ' ' + c.tone)" 2>/dev/null || echo "abstract cosmic art")
-          else
-            PROMPT="abstract cosmic nebula with vibrant colors, fractal patterns, digital art"
-          fi
-          
-          MODEL="${{ github.event.inputs.model || 'stable-diffusion' }}"
-          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          
-          echo "📝 Prompt: $PROMPT"
-          echo "🤖 Model: $MODEL"
-          
-          # Create dated folder structure
-          YEAR=$(date +%Y)
-          MONTH=$(date +%m)
-          DAY=$(date +%d)
-          ARTWORK_DIR="artworks/$YEAR/$MONTH/$DAY"
-          mkdir -p "$ARTWORK_DIR"
-          
-          # Generate image using Ollama API
-          echo "🎨 Generating..."
-          RESPONSE=$(curl -s -X POST http://localhost:11434/api/generate \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"model\": \"$MODEL\",
-              \"prompt\": \"$PROMPT\",
-              \"stream\": false
-            }")
-          
-          # Extract base64 image from response
-          IMAGE_DATA=$(echo "$RESPONSE" | node -e "
-            let d='';
-            process.stdin.on('data',c=>d+=c);
-            process.stdin.on('end',()=>{
-              try{
-                const j=JSON.parse(d);
-                console.log(j.image||j.b64||'');
-              }catch(e){console.log('')}
-            })" 2>/dev/null)
-          
-          if [ -n "$IMAGE_DATA" ]; then
-            FILENAME="art_${TIMESTAMP}.png"
-            echo "$IMAGE_DATA" | base64 -d > "$ARTWORK_DIR/$FILENAME"
-            echo "✅ Image saved: $ARTWORK_DIR/$FILENAME"
-            
-            # Save metadata
-            cat > "$ARTWORK_DIR/metadata_${TIMESTAMP}.json" << EOF
+          # If concept file exists, use it; otherwise create default
+          if [ ! -f selected-concept.json ]; then
+            STYLE="${{ github.event.inputs.style || 'abstract' }}"
+            PROMPT="${{ github.event.inputs.prompt || 'abstract cosmic art' }}"
+            cat > selected-concept.json << EOF
             {
-              "title": "Generated Art ${TIMESTAMP}",
-              "prompt": "$PROMPT",
-              "model": "$MODEL",
-              "date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-              "file": "$FILENAME"
+              "title": "Generated Art $(date +%Y%m%d_%H%M%S)",
+              "concept": "$PROMPT",
+              "technique": "$STYLE",
+              "colors": ["#667eea", "#764ba2", "#f093fb", "#4facfe", "#ff9a9e"],
+              "interaction": "Animated",
+              "tone": "Cosmic and transcendent"
             }
             EOF
-          else
-            echo "⚠️  Generation failed, using fallback"
-            echo "Response: $RESPONSE"
-            exit 1
           fi
+          
+          node scripts/art-generator.js
 
       - name: Build gallery
         run: |
           echo "📋 Building gallery..."
-          node scripts/build-gallery.js || echo "⚠️  Gallery build skipped"
+          node scripts/build-gallery.js
 
       - name: Configure Git
         run: |
@@ -175,20 +121,20 @@ jobs:
 
       - name: Commit artwork
         run: |
-          git add artworks/
-          
+          git add artworks/ artworks-list.json concept-history.json
+
           if git diff --staged --quiet; then
             echo "ℹ️  No changes to commit"
             exit 0
           fi
-          
+
           PROMPT_SUMMARY="${{ github.event.inputs.prompt }}"
           if [ -z "$PROMPT_SUMMARY" ]; then
             PROMPT_SUMMARY="autonomous generation"
           fi
-          
+
           git commit -m "🎨 [AUTO] New artwork: ${PROMPT_SUMMARY:0:50}..."
-          
+
           if git push origin master; then
             echo "✅ Pushed successfully"
           else
@@ -212,5 +158,5 @@ jobs:
         if: always()
         run: |
           echo "📊 Workflow Complete"
-          echo "   Model: ${{ github.event.inputs.model || 'stable-diffusion' }}"
+          echo "   Style: ${{ github.event.inputs.style || 'abstract' }}"
           echo "   Deployed: ${{ steps.deployment.outputs.page_url }}"
