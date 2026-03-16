@@ -7,6 +7,7 @@
 - **🤖 Autonomous Generation**: Creates new art pieces every 6 hours via GitHub Actions
 - **🎭 Diverse Art Styles**: Multiple generative art techniques (fractals, particle systems, noise, geometric patterns)
 - **💭 AI-Driven Concepts**: Each piece is conceptually guided by AI prompts
+- **🖼️ Ollama Image Generation**: Generate actual PNG images using Ollama's image models (stable-diffusion, flux, playground-v2.5)
 - **📄 GitHub Pages**: Auto-deploys to GitHub Pages
 
 ## How It Works
@@ -83,6 +84,60 @@ Edit `.github/workflows/autonomous-generate.yml`:
 ```yaml
 schedule:
   - cron: '0 */6 * * *'  # Change this
+```
+
+### Ollama Image Generation
+
+Generate actual PNG images using Ollama's image generation models:
+
+#### Via GitHub Actions (Manual Trigger)
+
+1. Go to **Actions** → **Ollama Image Generation**
+2. Click **Run workflow**
+3. Enter your prompt and select a model:
+   - `stable-diffusion` - Stable diffusion model
+   - `flux` - Flux model (high quality)
+   - `playground-v2.5` - Playground AI model
+4. Click **Run workflow**
+
+#### Via Workflow File
+
+The workflow supports:
+- **Manual trigger** with custom prompts
+- **Scheduled runs** (weekly on Mondays)
+- **Multiple images** per run
+
+#### Local Generation
+
+```bash
+# Start Ollama
+ollama serve
+
+# Generate an image
+node scripts/ollama-image-gen.js --prompt "cosmic fractal art" --model stable-diffusion
+
+# Generate multiple images
+node scripts/ollama-image-gen.js --prompt "abstract nebula" --count 5
+
+# List available models
+node scripts/ollama-image-gen.js --list
+
+# Pull a specific model
+node scripts/ollama-image-gen.js --pull --model flux
+```
+
+#### Command Options
+
+```bash
+node scripts/ollama-image-gen.js --help
+
+Options:
+  --prompt <text>   Description of the art to generate
+  --model <name>    Image generation model (default: stable-diffusion)
+  --count <n>       Number of images to generate (default: 1)
+  --output <dir>    Output directory (default: generated-images)
+  --pull            Pull the model before generating
+  --list            List available models
 ```
 
 ## License
