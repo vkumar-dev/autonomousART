@@ -95,16 +95,8 @@ jobs:
           if [ ! -f selected-concept.json ]; then
             STYLE="${{ github.event.inputs.style || 'abstract' }}"
             PROMPT="${{ github.event.inputs.prompt || 'abstract cosmic art' }}"
-            cat > selected-concept.json << EOF
-            {
-              "title": "Generated Art $(date +%Y%m%d_%H%M%S)",
-              "concept": "$PROMPT",
-              "technique": "$STYLE",
-              "colors": ["#667eea", "#764ba2", "#f093fb", "#4facfe", "#ff9a9e"],
-              "interaction": "Animated",
-              "tone": "Cosmic and transcendent"
-            }
-            EOF
+            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+            echo "{\"title\":\"Generated Art ${TIMESTAMP}\",\"concept\":\"${PROMPT}\",\"technique\":\"${STYLE}\",\"colors\":[\"#667eea\",\"#764ba2\",\"#f093fb\",\"#4facfe\",\"#ff9a9e\"],\"interaction\":\"Animated\",\"tone\":\"Cosmic and transcendent\"}" > selected-concept.json
           fi
           
           node scripts/art-generator.js
