@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -18,9 +18,8 @@ class GitModelQueue {
   getModelHistory(limit = 50) {
     try {
       // Get commits that modified models.config.json
-      const cmd = `cd ${this.repoPath} && git log --oneline --follow -n ${limit} -- models.config.json`;
-      const output = execSync(cmd, { encoding: 'utf8' }).trim();
-      
+      const output = execFileSync('git', ['-C', this.repoPath, 'log', '--oneline', '--follow', '-n', String(limit), '--', 'models.config.json'], { encoding: 'utf8' }).trim();
+
       if (!output) {
         console.log('⚠️  No git history found for models.config.json');
         return [];
@@ -35,13 +34,11 @@ class GitModelQueue {
 
         try {
           // Get the config from this commit
-          const configCmd = `cd ${this.repoPath} && git show ${hash}:models.config.json`;
-          const configStr = execSync(configCmd, { encoding: 'utf8' });
+          const configStr = execFileSync('git', ['-C', this.repoPath, 'show', `${hash}:models.config.json`], { encoding: 'utf8' });
           const config = JSON.parse(configStr);
 
           // Get commit timestamp
-          const timeCmd = `cd ${this.repoPath} && git log -1 --format=%aI ${hash}`;
-          const timestamp = execSync(timeCmd, { encoding: 'utf8' }).trim();
+          const timestamp = execFileSync('git', ['-C', this.repoPath, 'log', '-1', '--format=%aI', hash], { encoding: 'utf8' }).trim();
 
           history.push({
             model: config.primaryModel,
