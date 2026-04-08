@@ -1128,9 +1128,9 @@
         const res = await fetch(`artworks/${filename}`);
         if (!res.ok) return 'Code not available';
         const html = await res.text();
-        
+
         // Extract script content
-        const scriptMatch = html.match(/<script[^>]*>([\s\S]*?)<\/script>/);
+        const scriptMatch = html.match(/<script[^>]*>([\s\S]*?)<\/script>/i);
         if (scriptMatch) {
           let code = scriptMatch[1].trim();
           
