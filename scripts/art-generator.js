@@ -463,14 +463,25 @@ function generateSlug(title) {
 }
 
 async function generateArt() {
+  let concept;
+  
   if (!fs.existsSync(CONCEPT_FILE)) {
-    throw new Error('No concept found. Run concept-selector.js or ollama-concept-generator.js first.');
+    console.log('⚠️  No concept file found, using default creative fallback...');
+    concept = {
+      title: 'Celestial Harmony',
+      concept: 'An abstract exploration of cosmic balance and ethereal light patterns.',
+      technique: 'Fractal Mathematics',
+      colors: ['#1a1a2e', '#16213e', '#0f3460', '#e94560', '#00d2ff'],
+      interaction: 'Animated',
+      tone: 'Cosmic and transcendent',
+      generated: 'fallback'
+    };
+  } else {
+    concept = JSON.parse(fs.readFileSync(CONCEPT_FILE, 'utf8'));
+    console.log('🎨 Generating art for:', concept.title);
+    console.log('   Technique:', concept.technique);
+    console.log('   Colors:', concept.colors?.join(', '));
   }
-
-  const concept = JSON.parse(fs.readFileSync(CONCEPT_FILE, 'utf8'));
-  console.log('🎨 Generating art for:', concept.title);
-  console.log('   Technique:', concept.technique);
-  console.log('   Colors:', concept.colors?.join(', '));
 
   const result = generateCanvasArt(concept);
 

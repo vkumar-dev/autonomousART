@@ -1,12 +1,12 @@
 {
-  "primaryModel": "qwen3.5:9b",
-  "fallbackModel": "mistral:7b",
-  "lastUpdated": "2026-04-19T15:00:00.000Z",
-  "lastVerified": "2026-04-19T15:00:00.000Z",
+  "primaryModel": "qwen2.5-coder:3b",
+  "fallbackModel": "llama3.2:3b",
+  "lastUpdated": "2026-04-19T15:15:00.000Z",
+  "lastVerified": "2026-04-19T15:15:00.000Z",
   "locked": false,
   "metadata": {
-    "source": "qwen3.5-9b",
-    "size": "9B",
+    "source": "qwen2.5-coder-3b",
+    "size": "3B",
     "tested": true,
     "fallbackStrategy": "git_history"
   },
@@ -17,5 +17,5 @@
     "testTimeout": 300,
     "fallbackQueueDepth": 50
   },
-  "note": "Upgraded to Qwen 3.5 9B for 2026. This model provides elite creative reasoning and stable JSON output for the 9B-10B class."
+  "note": "Optimized for CI: Qwen 2.5 Coder 3B is the most reliable model for JSON generation within standard GitHub runner RAM limits."
 }

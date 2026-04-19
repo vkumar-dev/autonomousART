@@ -19,7 +19,7 @@ Instead of maintaining a manual list of fallback models, we use the repository's
 ## Configuration Schema
 ```json
 {
-  "primaryModel": "qwen3.5:9b",
+  "primaryModel": "qwen2.5-coder:3b",
   "fallbackModel": "llama3.2:3b",
   "fallbackStrategy": "git_history"
 }

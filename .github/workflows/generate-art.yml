@@ -73,8 +73,8 @@ jobs:
       - name: Pull text model for concept generation
         timeout-minutes: 15
         run: |
-          echo "📥 Pulling qwen3.5:9b for concept generation..."
-          ollama pull qwen3.5:9b
+          echo "📥 Pulling qwen2.5-coder:3b for concept generation..."
+          ollama pull qwen2.5-coder:3b
           ollama list
 
       - name: Generate art concept with Ollama
@@ -82,7 +82,7 @@ jobs:
         continue-on-error: true
         env:
           OLLAMA_URL: http://localhost:11434
-          OLLAMA_MODEL: qwen3.5:9b
+          OLLAMA_MODEL: qwen2.5-coder:3b
         run: |
           echo "🎨 Generating art concept with Ollama..."
           node scripts/ollama-concept-generator.js || echo "⚠️ Concept generation failed, using fallback"
