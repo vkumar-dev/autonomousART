@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen3.5:3b';
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen3.5:9b';
 const CONFIG_FILE = path.join(__dirname, '..', 'models.config.json');
 
 class OllamaInference {
