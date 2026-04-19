@@ -71,10 +71,10 @@ jobs:
           done
 
       - name: Pull text model for concept generation
-        timeout-minutes: 5
+        timeout-minutes: 10
         run: |
-          echo "📥 Pulling tinyllama for concept generation..."
-          ollama pull tinyllama || ollama pull llama3.2 || true
+          echo "📥 Pulling qwen3.5:3b for concept generation..."
+          ollama pull qwen3.5:3b
           ollama list
 
       - name: Generate art concept with Ollama
@@ -82,23 +82,14 @@ jobs:
         continue-on-error: true
         env:
           OLLAMA_URL: http://localhost:11434
-          OLLAMA_MODEL: tinyllama
+          OLLAMA_MODEL: qwen3.5:3b
         run: |
           echo "🎨 Generating art concept with Ollama..."
-          node scripts/ollama-concept-generator.js || echo "⚠️ Concept generation skipped"
+          node scripts/ollama-concept-generator.js || echo "⚠️ Concept generation failed, using fallback"
 
       - name: Generate artwork (Canvas-based)
         run: |
           echo "🖼️  Generating canvas art..."
-          
-          # If concept file exists, use it; otherwise create default
-          if [ ! -f selected-concept.json ]; then
-            STYLE="${{ github.event.inputs.style || 'abstract' }}"
-            PROMPT="${{ github.event.inputs.prompt || 'abstract cosmic art' }}"
-            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-            echo "{\"title\":\"Generated Art ${TIMESTAMP}\",\"concept\":\"${PROMPT}\",\"technique\":\"${STYLE}\",\"colors\":[\"#667eea\",\"#764ba2\",\"#f093fb\",\"#4facfe\",\"#ff9a9e\"],\"interaction\":\"Animated\",\"tone\":\"Cosmic and transcendent\"}" > selected-concept.json
-          fi
-          
           node scripts/art-generator.js
 
       - name: Build gallery

@@ -5,7 +5,7 @@ const path = require('path');
 const OllamaInference = require('./ollama-inference');
 
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://127.0.0.1:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'mistral';
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen3.5:3b';
 const CONCEPT_FILE = path.join(__dirname, '..', 'selected-concept.json');
 const PROMPT_FILE = path.join(__dirname, '..', 'prompts', 'art-generation.txt');
 const HISTORY_FILE = path.join(__dirname, '..', 'concept-history.json');
@@ -57,6 +57,7 @@ function getRandomTone() {
 function parseConceptResponse(response) {
   console.log('📝 Parsing Ollama response...\n');
 
+  // Default concept in case of failure
   const concept = {
     title: 'Untitled Concept',
     concept: 'A unique generative art piece',
@@ -68,49 +69,41 @@ function parseConceptResponse(response) {
   };
 
   try {
-    const lines = response.split('\n').map(l => l.trim()).filter(l => l);
-
-    lines.forEach(line => {
-      const titleMatch = line.match(/^Title:\s*(.+)$/i);
-      if (titleMatch) {
-        concept.title = titleMatch[1].trim().replace(/^["']|["']$/g, '').slice(0, 50);
-        console.log(`✓ Title: ${concept.title}`);
+    // Try to find JSON in the response
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      
+      if (parsed.title) concept.title = parsed.title.slice(0, 50);
+      if (parsed.concept) concept.concept = parsed.concept.slice(0, 300);
+      if (parsed.technique) {
+        const found = ART_TECHNIQUES.find(t => parsed.technique.toLowerCase().includes(t.toLowerCase()));
+        if (found) concept.technique = found;
       }
-
-      const conceptMatch = line.match(/^Concept:\s*(.+)$/i);
-      if (conceptMatch) {
-        concept.concept = conceptMatch[1].trim().replace(/^["']|["']$/g, '').slice(0, 300);
+      if (Array.isArray(parsed.colors)) {
+        concept.colors = parsed.colors.filter(c => /^#[0-9a-fA-F]{3,6}$/.test(c)).slice(0, 5);
       }
-
-      const techniqueMatch = line.match(/^Technique:\s*(.+)$/i);
-      if (techniqueMatch) {
-        const mentioned = techniqueMatch[1].trim();
-        const foundTechnique = ART_TECHNIQUES.find(t => mentioned.toLowerCase().includes(t.toLowerCase()));
-        if (foundTechnique) {
-          concept.technique = foundTechnique;
-          console.log(`✓ Technique: ${concept.technique}`);
+      if (parsed.tone) {
+        const found = EMOTIONAL_TONES.find(t => parsed.tone.toLowerCase().includes(t.toLowerCase()));
+        if (found) concept.tone = found;
+      }
+      
+      console.log('✅ Successfully parsed JSON response');
+    } else {
+      console.warn('⚠️ No JSON found in response, falling back to regex parsing');
+      // Fallback to legacy regex parsing if JSON fails
+      const lines = response.split('\n').map(l => l.trim()).filter(l => l);
+      lines.forEach(line => {
+        const titleMatch = line.match(/^Title:\s*(.+)$/i);
+        if (titleMatch) concept.title = titleMatch[1].trim().replace(/^["']|["']$/g, '').slice(0, 50);
+        
+        const techniqueMatch = line.match(/^Technique:\s*(.+)$/i);
+        if (techniqueMatch) {
+          const found = ART_TECHNIQUES.find(t => techniqueMatch[1].toLowerCase().includes(t.toLowerCase()));
+          if (found) concept.technique = found;
         }
-      }
-
-      if (line.match(/^Colors:/i)) {
-        const colorMatches = line.match(/#[0-9a-fA-F]{3,6}/g);
-        if (colorMatches && colorMatches.length > 0) {
-          concept.colors = [...new Set(colorMatches.slice(0, 5))];
-          console.log(`✓ Colors: ${concept.colors.join(', ')}`);
-        }
-      }
-
-      const toneMatch = line.match(/^Tone:\s*(.+)$/i);
-      if (toneMatch) {
-        const mentioned = toneMatch[1].trim();
-        const foundTone = EMOTIONAL_TONES.find(t => mentioned.toLowerCase().includes(t.toLowerCase()));
-        if (foundTone) {
-          concept.tone = foundTone;
-          console.log(`✓ Tone: ${concept.tone}`);
-        }
-      }
-    });
-
+      });
+    }
   } catch (error) {
     console.error('❌ Parse error:', error.message);
   }
@@ -129,31 +122,28 @@ async function generateConceptWithOllama() {
     throw new Error(`❌ Ollama service is not available at ${OLLAMA_URL}`);
   }
 
-  let prompt = '';
-  if (fs.existsSync(PROMPT_FILE)) {
-    prompt = fs.readFileSync(PROMPT_FILE, 'utf8');
-  } else {
-    prompt = `You are an art concept generator. Create ONE art concept in this exact format:
-
-Title: [2-4 word name]
-Concept: [1-2 sentences describing the visual artwork]
-Technique: [Pick one: Fractal Mathematics, Particle Dynamics, Perlin Noise Landscapes, Generative Geometry, Cellular Automata, Color Theory, Interactive Physics, Abstract Expressionism]
-Colors: #1a1a2e #16213e #0f3460 #e94560
-Tone: [Pick one: Hypnotic, Chaotic, Peaceful, Sacred, Mysterious, Energetic, Cosmic, Complex, Beautiful, Intricate, Thought-provoking, Surreal]
-
-Only respond with these 5 lines, nothing else.`;
-  }
-
   const technique = getRandomTechnique();
   const tone = getRandomTone();
-  prompt = prompt.replace('{{TECHNIQUE}}', technique).replace('{{TONE}}', tone);
+  
+  const prompt = `You are an art concept generator. Create ONE art concept for a generative artwork.
+Return ONLY a JSON object in this exact format:
+{
+  "title": "2-4 word name",
+  "concept": "1-2 sentences describing visual elements",
+  "technique": "${technique}",
+  "colors": ["#hex1", "#hex2", "#hex3", "#hex4"],
+  "tone": "${tone}"
+}
+
+Available techniques: ${ART_TECHNIQUES.join(', ')}
+Available tones: ${EMOTIONAL_TONES.join(', ')}
+
+Response MUST be valid JSON.`;
 
   console.log(`📡 Calling Ollama (model: ${OLLAMA_MODEL})...\n`);
   const result = await inference.generate(prompt, {
-    temperature: 0.8,
-    topP: 0.9,
-    topK: 40,
-    numPredict: 1500,
+    temperature: 0.7,
+    format: 'json',
     verbose: true
   });
 

@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5-coder:7b';
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen3.5:3b';
 const CONFIG_FILE = path.join(__dirname, '..', 'models.config.json');
 
 class OllamaInference {
@@ -108,7 +108,8 @@ class OllamaInference {
       topK = 40,
       numPredict = 2048,
       verbose = true,
-      useConfigModel = true
+      useConfigModel = true,
+      format = null
     } = options;
 
     try {
@@ -122,20 +123,26 @@ class OllamaInference {
         console.log(`🤖 Model: ${model}${this.fallbackUsed ? ' (fallback)' : ''}`);
       }
 
+      const body = {
+        model: model,
+        prompt: prompt,
+        stream: false,
+        options: {
+          temperature,
+          top_p: topP,
+          top_k: topK,
+          num_predict: numPredict
+        }
+      };
+
+      if (format) {
+        body.format = format;
+      }
+
       const response = await fetch(`${this.url}/api/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: model,
-          prompt: prompt,
-          stream: false,
-          options: {
-            temperature,
-            top_p: topP,
-            top_k: topK,
-            num_predict: numPredict
-          }
-        }),
+        body: JSON.stringify(body),
         timeout: this.timeout
       });
 

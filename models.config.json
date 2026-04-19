@@ -1,11 +1,12 @@
 {
-  "primaryModel": "qwen35-4b",
-  "lastUpdated": "2026-04-19T02:54:28.951Z",
-  "lastVerified": "2026-04-19T02:54:28.951Z",
+  "primaryModel": "qwen3.5:3b",
+  "fallbackModel": "llama3.2:3b",
+  "lastUpdated": "2026-04-19T14:00:00.000Z",
+  "lastVerified": "2026-04-19T14:00:00.000Z",
   "locked": false,
   "metadata": {
-    "source": "qwen3.5-4b",
-    "size": "4B",
+    "source": "qwen3.5-3b",
+    "size": "3B",
     "tested": true,
     "fallbackStrategy": "git_history"
   },
@@ -16,5 +17,5 @@
     "testTimeout": 300,
     "fallbackQueueDepth": 50
   },
-  "note": "Only primaryModel is active. If it fails at runtime, OllamaInference will use GitModelQueue to try previous versions from git history indefinitely."
+  "note": "Qwen 3.5 3B is the primary model for 2026, offering elite JSON reliability in CI environments."
 }
