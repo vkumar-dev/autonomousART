@@ -71,7 +71,7 @@ jobs:
           done
 
       - name: Pull text model for concept generation
-        timeout-minutes: 10
+        timeout-minutes: 15
         run: |
           echo "📥 Pulling qwen3.5:9b for concept generation..."
           ollama pull qwen3.5:9b
