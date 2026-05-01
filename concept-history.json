@@ -1384,7 +1384,13 @@
       "date": "2026-04-30T19:54:35.900Z",
       "technique": "Fractal Mathematics",
       "generated": "ollama"
+    },
+    {
+      "title": "Perlin Noise Mountain",
+      "date": "2026-05-01T04:34:16.019Z",
+      "technique": "Perlin Noise Landscapes",
+      "generated": "ollama"
     }
   ],
-  "lastUpdated": "2026-04-30T19:54:35.900Z"
+  "lastUpdated": "2026-05-01T04:34:16.019Z"
 }
