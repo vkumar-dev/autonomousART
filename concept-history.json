@@ -1648,7 +1648,13 @@
       "date": "2026-05-12T04:12:41.483Z",
       "technique": "Cellular Automata",
       "generated": "ollama"
+    },
+    {
+      "title": "Spiral Perlin Noise",
+      "date": "2026-05-12T09:16:55.374Z",
+      "technique": "Perlin Noise Landscapes",
+      "generated": "ollama"
     }
   ],
-  "lastUpdated": "2026-05-12T04:12:41.483Z"
+  "lastUpdated": "2026-05-12T09:16:55.374Z"
 }
