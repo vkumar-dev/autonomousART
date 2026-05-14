@@ -1702,7 +1702,13 @@
       "date": "2026-05-14T09:12:56.275Z",
       "technique": "Particle Dynamics",
       "generated": "ollama"
+    },
+    {
+      "title": "Whispering Winds",
+      "date": "2026-05-14T15:02:40.353Z",
+      "technique": "Interactive Physics",
+      "generated": "ollama"
     }
   ],
-  "lastUpdated": "2026-05-14T09:12:56.275Z"
+  "lastUpdated": "2026-05-14T15:02:40.353Z"
 }
