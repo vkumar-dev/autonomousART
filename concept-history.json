@@ -1774,7 +1774,13 @@
       "date": "2026-05-17T08:36:55.519Z",
       "technique": "Particle Dynamics",
       "generated": "ollama"
+    },
+    {
+      "title": "Mystic Particle Cascade",
+      "date": "2026-05-17T14:02:56.615Z",
+      "technique": "Particle Dynamics",
+      "generated": "ollama"
     }
   ],
-  "lastUpdated": "2026-05-17T08:36:55.520Z"
+  "lastUpdated": "2026-05-17T14:02:56.615Z"
 }
