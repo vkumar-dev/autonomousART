@@ -2014,7 +2014,13 @@
       "date": "2026-05-27T10:35:12.161Z",
       "technique": "Perlin Noise Landscapes",
       "generated": "ollama"
+    },
+    {
+      "title": "Fractal Forest",
+      "date": "2026-05-27T16:16:25.045Z",
+      "technique": "Fractal Mathematics",
+      "generated": "ollama"
     }
   ],
-  "lastUpdated": "2026-05-27T10:35:12.161Z"
+  "lastUpdated": "2026-05-27T16:16:25.045Z"
 }
