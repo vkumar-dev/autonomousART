@@ -2062,7 +2062,13 @@
       "date": "2026-05-29T10:28:32.644Z",
       "technique": "Particle Dynamics",
       "generated": "ollama"
+    },
+    {
+      "title": "Dancing Cells",
+      "date": "2026-05-29T16:13:18.281Z",
+      "technique": "Cellular Automata",
+      "generated": "ollama"
     }
   ],
-  "lastUpdated": "2026-05-29T10:28:32.644Z"
+  "lastUpdated": "2026-05-29T16:13:18.281Z"
 }
