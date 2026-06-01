@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Celestial Particle Symphony - autonomousART</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #050505;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: #fff;
+      padding: 20px;
+    }
+    .container { max-width: 1200px; width: 100%; text-align: center; }
+    .frame {
+      background: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.6);
+      margin-bottom: 30px;
+    }
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .info {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 15px;
+      background: linear-gradient(135deg, #0047AB, #FFD18C);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p { font-size: 16px; line-height: 1.7; opacity: 0.9; margin-bottom: 20px; }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .tag {
+      background: rgba(255,255,255,0.1);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+    }
+    .colors {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .swatch {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+    .back {
+      display: inline-block;
+      margin-top: 25px;
+      color: #fff;
+      text-decoration: none;
+      background: rgba(255,255,255,0.1);
+      padding: 12px 28px;
+      border-radius: 30px;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    .back:hover {
+      background: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="frame">
+      <canvas id="artCanvas" width="1024" height="1024"></canvas>
+    </div>
+
+    <div class="info">
+      <h1>Celestial Particle Symphony</h1>
+      <p>A mesmerizing display of particles moving in rhythmic patterns across a digital canvas, creating a hypnotic and meditative visual experience.</p>
+
+      <div class="meta">
+        <span class="tag">🎨 Particle Dynamics</span>
+        <span class="tag">🖼️ Animated</span>
+      </div>
+
+      <div class="colors">
+        <div class="swatch" style="background:#0047AB"></div><div class="swatch" style="background:#FFD18C"></div><div class="swatch" style="background:#E3526F"></div><div class="swatch" style="background:#1B9EC3"></div>
+      </div>
+    </div>
+
+    <a href="../index.html" class="back">← Back to Gallery</a>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('artCanvas');
+    const ctx = canvas.getContext('2d');
+    const colors = ["#0047AB","#FFD18C","#E3526F","#1B9EC3"];
+    const technique = 'particle dynamics';
+
+    function random(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function randomChoice(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    
+    const particles = [];
+
+    class Particle {
+      constructor() {
+        this.x = random(0, canvas.width);
+        this.y = random(0, canvas.height);
+        this.vx = random(-2, 2);
+        this.vy = random(-2, 2);
+        this.size = random(2, 8);
+        this.color = randomChoice(colors);
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.fillStyle = this.color;
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function init() {
+      for (let i = 0; i < 100; i++) particles.push(new Particle());
+      animate();
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(5, 5, 10, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animate);
+    }
+    
+
+    init();
+  </script>
+</body>
+</html>
