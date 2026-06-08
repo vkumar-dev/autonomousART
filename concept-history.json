@@ -2302,7 +2302,13 @@
       "date": "2026-06-08T11:25:35.196Z",
       "technique": "Generative Geometry",
       "generated": "ollama"
+    },
+    {
+      "title": "Mystic Perlin Peaks",
+      "date": "2026-06-08T16:33:25.255Z",
+      "technique": "Perlin Noise Landscapes",
+      "generated": "ollama"
     }
   ],
-  "lastUpdated": "2026-06-08T11:25:35.197Z"
+  "lastUpdated": "2026-06-08T16:33:25.255Z"
 }
