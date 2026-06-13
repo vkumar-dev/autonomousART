@@ -2404,7 +2404,13 @@
       "date": "2026-06-12T20:32:26.751Z",
       "technique": "Interactive Physics",
       "generated": "ollama"
+    },
+    {
+      "title": "Mystic Perlin Forest",
+      "date": "2026-06-13T04:56:51.540Z",
+      "technique": "Perlin Noise Landscapes",
+      "generated": "ollama"
     }
   ],
-  "lastUpdated": "2026-06-12T20:32:26.751Z"
+  "lastUpdated": "2026-06-13T04:56:51.540Z"
 }
