@@ -70,11 +70,18 @@ jobs:
             sleep 2
           done
 
+      - name: Get model configuration
+        id: model-config
+        run: |
+          PRIMARY_MODEL=$(node -e "console.log(JSON.parse(require('fs').readFileSync('models.config.json')).primaryModel)")
+          echo "PRIMARY_MODEL=$PRIMARY_MODEL" >> $GITHUB_ENV
+          echo "primary_model=$PRIMARY_MODEL" >> $GITHUB_OUTPUT
+
       - name: Pull text model for concept generation
         timeout-minutes: 15
         run: |
-          echo "📥 Pulling qwen2.5-coder:3b for concept generation..."
-          ollama pull qwen2.5-coder:3b
+          echo "📥 Pulling ${{ env.PRIMARY_MODEL }} for concept generation..."
+          ollama pull ${{ env.PRIMARY_MODEL }}
           ollama list
 
       - name: Generate art concept with Ollama
@@ -82,9 +89,9 @@ jobs:
         continue-on-error: true
         env:
           OLLAMA_URL: http://localhost:11434
-          OLLAMA_MODEL: qwen2.5-coder:3b
+          OLLAMA_MODEL: ${{ env.PRIMARY_MODEL }}
         run: |
-          echo "🎨 Generating art concept with Ollama..."
+          echo "🎨 Generating art concept with Ollama using ${{ env.PRIMARY_MODEL }}..."
           node scripts/ollama-concept-generator.js || echo "⚠️ Concept generation failed, using fallback"
 
       - name: Generate artwork (Canvas-based)

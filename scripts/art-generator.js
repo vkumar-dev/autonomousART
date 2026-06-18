@@ -170,12 +170,13 @@ function getArtCode(technique, colors, concept) {
     'fractal': `
     let zoom = 1, offsetX = 0, offsetY = 0;
     const maxIter = 100;
+    const entropy = Math.random() * 0.1;
 
     function mandelbrot(cx, cy) {
       let x = 0, y = 0, x2 = 0, y2 = 0, iter = 0;
       while (x2 + y2 <= 4 && iter < maxIter) {
-        y = 2 * x * y + cy;
-        x = x2 - y2 + cx;
+        y = 2 * x * y + cy + (Math.random() - 0.5) * entropy;
+        x = x2 - y2 + cx + (Math.random() - 0.5) * entropy;
         x2 = x * x;
         y2 = y * y;
         iter++;
@@ -198,7 +199,7 @@ function getArtCode(technique, colors, concept) {
             imgData.data[idx] = imgData.data[idx+1] = imgData.data[idx+2] = 0;
           } else {
             const t = iter / maxIter;
-            const color = colors[Math.floor(t * colors.length) % colors.length];
+            const color = colors[Math.floor(t * colors.length + Math.sin(t * 10)) % colors.length];
             imgData.data[idx] = parseInt(color.slice(1, 3), 16);
             imgData.data[idx + 1] = parseInt(color.slice(3, 5), 16);
             imgData.data[idx + 2] = parseInt(color.slice(5, 7), 16);
@@ -211,9 +212,9 @@ function getArtCode(technique, colors, concept) {
 
     let frame = 0;
     function animate() {
-      zoom = 1 + Math.sin(frame * 0.01) * 0.5;
-      offsetX = Math.cos(frame * 0.005) * 0.5;
-      offsetY = Math.sin(frame * 0.005) * 0.5;
+      zoom = 1 + Math.sin(frame * 0.01) * 0.5 + Math.random() * 0.05;
+      offsetX = Math.cos(frame * 0.005) * 0.5 + (Math.random() - 0.5) * 0.1;
+      offsetY = Math.sin(frame * 0.005) * 0.5 + (Math.random() - 0.5) * 0.1;
       draw();
       frame++;
       requestAnimationFrame(animate);
@@ -231,36 +232,146 @@ function getArtCode(technique, colors, concept) {
       constructor() {
         this.x = random(0, canvas.width);
         this.y = random(0, canvas.height);
-        this.vx = random(-2, 2);
-        this.vy = random(-2, 2);
-        this.size = random(2, 8);
+        this.vx = random(-5, 5);
+        this.vy = random(-5, 5);
+        this.size = random(2, 20);
         this.color = randomChoice(colors);
+        this.jitter = Math.random() * 2;
       }
 
       update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+        this.x += this.vx + (Math.random() - 0.5) * this.jitter;
+        this.y += this.vy + (Math.random() - 0.5) * this.jitter;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1.1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1.1;
+        
+        // Unhinged behavior: particles occasionally explode
+        if (Math.random() > 0.999) {
+          this.vx *= 5;
+          this.vy *= 5;
+        }
+        
+        this.vx *= 0.99;
+        this.vy *= 0.99;
       }
 
       draw() {
         ctx.beginPath();
         ctx.fillStyle = this.color;
+        if (Math.random() > 0.95) ctx.fillStyle = '#fff';
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
+        
+        if (Math.random() > 0.9) {
+          ctx.strokeStyle = this.color;
+          ctx.lineWidth = 1;
+          ctx.lineTo(random(0, canvas.width), random(0, canvas.height));
+          ctx.stroke();
+        }
       }
     }
 
     function init() {
-      for (let i = 0; i < 100; i++) particles.push(new Particle());
+      for (let i = 0; i < 50; i++) particles.push(new Particle());
       animate();
     }
 
     function animate() {
-      ctx.fillStyle = 'rgba(5, 5, 10, 0.1)';
+      ctx.fillStyle = 'rgba(5, 5, 10, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       particles.forEach(p => { p.update(); p.draw(); });
+      if (Math.random() > 0.98) {
+        ctx.save();
+        ctx.translate(random(-50, 50), random(-50, 50));
+        ctx.drawImage(canvas, 0, 0);
+        ctx.restore();
+      }
+      requestAnimationFrame(animate);
+    }
+    `,
+
+    'glitch': `
+    function init() {
+      animate();
+    }
+
+    function animate() {
+      // Background with trails
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < 10; i++) {
+        const x = random(0, canvas.width);
+        const y = random(0, canvas.height);
+        const w = random(10, 400);
+        const h = random(2, 50);
+        
+        ctx.fillStyle = randomChoice(colors);
+        ctx.globalAlpha = 0.8;
+        ctx.fillRect(x, y, w, h);
+        
+        // Randomly copy and shift chunks of the canvas
+        if (Math.random() > 0.7) {
+          const sx = random(0, canvas.width - 100);
+          const sy = random(0, canvas.height - 100);
+          const sw = random(50, 200);
+          const sh = random(50, 200);
+          const dx = sx + random(-50, 50);
+          const dy = sy + random(-50, 50);
+          ctx.drawImage(canvas, sx, sy, sw, sh, dx, dy, sw, sh);
+        }
+      }
+
+      // Digital noise spikes
+      if (Math.random() > 0.9) {
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = random(1, 5);
+        ctx.beginPath();
+        const ly = random(0, canvas.height);
+        ctx.moveTo(0, ly);
+        ctx.lineTo(canvas.width, ly + random(-20, 20));
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(animate);
+    }
+    `,
+
+    'chaos': `
+    let points = [];
+    function init() {
+      for(let i=0; i<5; i++) points.push({x: random(0, canvas.width), y: random(0, canvas.height)});
+      animate();
+    }
+
+    let t = 0;
+    function animate() {
+      ctx.fillStyle = 'rgba(5, 0, 15, 0.02)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.save();
+      ctx.translate(canvas.width/2, canvas.height/2);
+      ctx.rotate(t);
+      
+      for (let i = 0; i < 100; i++) {
+        const angle = random(0, Math.PI * 2);
+        const dist = Math.tan(t + i) * 200;
+        const x = Math.cos(angle) * dist;
+        const y = Math.sin(angle) * dist;
+        
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.beginPath();
+        ctx.arc(x, y, random(1, 5), 0, Math.PI * 2);
+        ctx.fill();
+        
+        if (Math.random() > 0.99) {
+           ctx.font = '20px monospace';
+           ctx.fillText(Math.random().toString(16).slice(2, 8), x, y);
+        }
+      }
+      ctx.restore();
+      
+      t += 0.01;
       requestAnimationFrame(animate);
     }
     `,
@@ -373,6 +484,117 @@ function getArtCode(technique, colors, concept) {
     }
     `,
 
+    'perlin': `
+    let grid = [];
+    const size = 20;
+    const cols = Math.ceil(canvas.width / size);
+    const rows = Math.ceil(canvas.height / size);
+
+    // Simple pseudo-random gradient noise
+    const gradients = {};
+    function getGradient(x, y) {
+      const key = \`\${x},\${y}\`;
+      if (gradients[key]) return gradients[key];
+      const angle = Math.random() * Math.PI * 2;
+      return gradients[key] = { x: Math.cos(angle), y: Math.sin(angle) };
+    }
+
+    function dotGridGradient(ix, iy, x, y) {
+      const gradient = getGradient(ix, iy);
+      const dx = x - ix, dy = y - iy;
+      return (dx * gradient.x + dy * gradient.y);
+    }
+
+    function lerp(a, b, w) { return (1.0 - w) * a + w * b; }
+
+    function noise(x, y) {
+      const x0 = Math.floor(x), x1 = x0 + 1;
+      const y0 = Math.floor(y), y1 = y0 + 1;
+      const sx = x - x0, sy = y - y0;
+      const n0 = dotGridGradient(x0, y0, x, y);
+      const n1 = dotGridGradient(x1, y0, x, y);
+      const ix0 = lerp(n0, n1, sx);
+      const n2 = dotGridGradient(x0, y1, x, y);
+      const n3 = dotGridGradient(x1, y1, x, y);
+      const ix1 = lerp(n2, n3, sx);
+      return lerp(ix0, ix1, sy);
+    }
+
+    function init() {
+      animate();
+    }
+
+    let z = 0;
+    function animate() {
+      ctx.fillStyle = 'rgba(5, 5, 10, 0.2)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      for (let i = 0; i < 50; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const n = noise(x * 0.005, y * 0.005 + z) * 10;
+        const color = colors[Math.floor(Math.abs(n * colors.length)) % colors.length];
+        
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = 0.5;
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + Math.cos(n * Math.PI) * 50, y + Math.sin(n * Math.PI) * 50);
+        ctx.stroke();
+      }
+      z += 0.005;
+      requestAnimationFrame(animate);
+    }
+    `,
+
+    'cellular': `
+    let grid = [];
+    const size = 10;
+    const cols = Math.floor(canvas.width / size);
+    const rows = Math.floor(canvas.height / size);
+
+    function init() {
+      for (let i = 0; i < cols; i++) {
+        grid[i] = [];
+        for (let j = 0; j < rows; j++) {
+          grid[i][j] = Math.random() > 0.8 ? 1 : 0;
+        }
+      }
+      animate();
+    }
+
+    function animate() {
+      const next = [];
+      for (let i = 0; i < cols; i++) {
+        next[i] = [];
+        for (let j = 0; j < rows; j++) {
+          let neighbors = 0;
+          for (let x = -1; x <= 1; x++) {
+            for (let y = -1; y <= 1; y++) {
+              if (x === 0 && y === 0) continue;
+              const ni = (i + x + cols) % cols;
+              const nj = (j + y + rows) % rows;
+              neighbors += grid[ni][nj];
+            }
+          }
+
+          if (grid[i][j] === 1 && (neighbors < 2 || neighbors > 3)) next[i][j] = 0;
+          else if (grid[i][j] === 0 && neighbors === 3) next[i][j] = 1;
+          else next[i][j] = grid[i][j];
+
+          if (next[i][j] === 1) {
+            ctx.fillStyle = colors[Math.floor(i / cols * colors.length)];
+            ctx.fillRect(i * size, j * size, size - 1, size - 1);
+          }
+        }
+      }
+      grid = next;
+      ctx.fillStyle = 'rgba(5, 5, 10, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      setTimeout(() => requestAnimationFrame(animate), 100);
+    }
+    `,
+
     'abstract': `
     const elements = [];
 
@@ -439,7 +661,11 @@ function getArtCode(technique, colors, concept) {
     `
   };
 
-  const key = Object.keys(code).find(k => technique.includes(k)) || 'abstract';
+  const techLower = technique.toLowerCase();
+  const key = Object.keys(code).find(k => techLower.includes(k)) || 
+              (techLower.includes('noise') ? 'perlin' : 
+               techLower.includes('automata') ? 'cellular' : 
+               techLower.includes('geometry') ? 'abstract' : 'abstract');
   return code[key];
 }
 

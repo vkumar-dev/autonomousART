@@ -1,8 +1,8 @@
 {
   "primaryModel": "qwen35-4b",
   "fallbackModel": "llama3.2:3b",
-  "lastUpdated": "2026-06-14T04:18:25.088Z",
-  "lastVerified": "2026-06-14T04:18:25.089Z",
+  "lastUpdated": "2026-06-19T10:00:00.000Z",
+  "lastVerified": "2026-06-19T10:00:00.000Z",
   "locked": false,
   "metadata": {
     "source": "qwen3.5-4b",
@@ -17,5 +17,5 @@
     "testTimeout": 300,
     "fallbackQueueDepth": 50
   },
-  "note": "Optimized for CI: Qwen 2.5 Coder 3B is the most reliable model for JSON generation within standard GitHub runner RAM limits."
+  "note": "Upgraded to Qwen 3.5 4B for improved concept generation and variety."
 }

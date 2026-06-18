@@ -125,19 +125,23 @@ async function generateConceptWithOllama() {
   const technique = getRandomTechnique();
   const tone = getRandomTone();
   
-  const prompt = `You are an art concept generator. Create ONE art concept for a generative artwork.
+  const prompt = `You are an art concept generator specializing in SURREAL, UNHINGED, and EXPERIMENTAL generative art. 
+Your goal is to push the boundaries of computational beauty into the realm of the bizarre and the chaotic.
+
+Create ONE concept for a generative artwork.
 Return ONLY a JSON object in this exact format:
 {
-  "title": "2-4 word name",
-  "concept": "1-2 sentences describing visual elements",
+  "title": "2-4 word surreal name",
+  "concept": "1-2 sentences describing bizarre visual elements and chaotic evolution",
   "technique": "${technique}",
-  "colors": ["#hex1", "#hex2", "#hex3", "#hex4"],
+  "colors": ["#hex1", "#hex2", "#hex3", "#hex4", "#hex5"],
   "tone": "${tone}"
 }
 
 Available techniques: ${ART_TECHNIQUES.join(', ')}
 Available tones: ${EMOTIONAL_TONES.join(', ')}
 
+Think outside the box. Avoid harmony; embrace chaos.
 Response MUST be valid JSON.`;
 
   console.log(`📡 Calling Ollama (model: ${OLLAMA_MODEL})...\n`);
