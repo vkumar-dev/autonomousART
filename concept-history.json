@@ -2554,7 +2554,13 @@
       "date": "2026-06-19T11:02:08.216Z",
       "technique": "Particle Dynamics",
       "generated": "ollama"
+    },
+    {
+      "title": "Wave of Shadows",
+      "date": "2026-06-19T15:47:36.751Z",
+      "technique": "Interactive Physics",
+      "generated": "ollama"
     }
   ],
-  "lastUpdated": "2026-06-19T11:02:08.216Z"
+  "lastUpdated": "2026-06-19T15:47:36.751Z"
 }
