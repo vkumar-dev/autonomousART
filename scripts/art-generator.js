@@ -693,13 +693,21 @@ async function generateArt() {
   
   if (!fs.existsSync(CONCEPT_FILE)) {
     console.log('⚠️  No concept file found, using default creative fallback...');
+    const fallbackTechniques = ['Particle Dynamics', 'Perlin Noise Landscapes', 'Generative Geometry', 'Cellular Automata', 'Glitch Aesthetics', 'Wave Interference', 'Chaos Theory'];
+    const fallbackColors = [
+      ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff'],
+      ['#00d2d3', '#ff9f43', '#ee5a24', '#0abde3', '#10ac84'],
+      ['#5f27cd', '#341f97', '#2e86de', '#ff6348', '#2ed573'],
+      ['#e056fd', '#686de0', '#30336b', '#f9ca24', '#badc58']
+    ];
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
     concept = {
-      title: 'Celestial Harmony',
-      concept: 'An abstract exploration of cosmic balance and ethereal light patterns.',
-      technique: 'Fractal Mathematics',
-      colors: ['#1a1a2e', '#16213e', '#0f3460', '#e94560', '#00d2ff'],
+      title: 'Emergent Depths',
+      concept: 'An autonomous exploration of chaotic beauty, evolving forms, and computational emergence.',
+      technique: pick(fallbackTechniques),
+      colors: pick(fallbackColors),
       interaction: 'Animated',
-      tone: 'Cosmic and transcendent',
+      tone: 'Mysterious and alive',
       generated: 'fallback'
     };
   } else {

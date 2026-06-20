@@ -46,7 +46,28 @@ function getConceptHistory() {
   }
 }
 
-function getRandomTechnique() {
+function getRecentTechniques(history, count = 10) {
+  return history.slice(-count).map(h => h.technique).filter(Boolean);
+}
+
+function getDiverseTechnique(history) {
+  const recent = getRecentTechniques(history, 10);
+  const recentCounts = {};
+  recent.forEach(t => { recentCounts[t] = (recentCounts[t] || 0) + 1; });
+
+  // Weight techniques: penalize recently used ones
+  const weighted = ART_TECHNIQUES.map(t => {
+    const timesUsed = recentCounts[t] || 0;
+    return { technique: t, weight: 1 / (1 + timesUsed * 2) };
+  });
+
+  // Weighted random selection
+  const totalWeight = weighted.reduce((sum, w) => sum + w.weight, 0);
+  let r = Math.random() * totalWeight;
+  for (const w of weighted) {
+    r -= w.weight;
+    if (r <= 0) return w.technique;
+  }
   return ART_TECHNIQUES[Math.floor(Math.random() * ART_TECHNIQUES.length)];
 }
 
@@ -77,8 +98,20 @@ function parseConceptResponse(response) {
       if (parsed.title) concept.title = parsed.title.slice(0, 50);
       if (parsed.concept) concept.concept = parsed.concept.slice(0, 300);
       if (parsed.technique) {
-        const found = ART_TECHNIQUES.find(t => parsed.technique.toLowerCase().includes(t.toLowerCase()));
-        if (found) concept.technique = found;
+        // Check if any known technique name appears within the Ollama response
+        const ollamaText = parsed.technique.toLowerCase();
+        const found = ART_TECHNIQUES.find(t => ollamaText.includes(t.toLowerCase()));
+        if (found) {
+          concept.technique = found;
+        } else {
+          // Fuzzy: check individual words in the technique name
+          const words = ollamaText.split(/\s+/);
+          const fuzzy = ART_TECHNIQUES.find(t => {
+            const tWords = t.toLowerCase().split(/\s+/);
+            return tWords.some(tw => words.some(w => w.includes(tw) || tw.includes(w)));
+          });
+          if (fuzzy) concept.technique = fuzzy;
+        }
       }
       if (Array.isArray(parsed.colors)) {
         concept.colors = parsed.colors.filter(c => /^#[0-9a-fA-F]{3,6}$/.test(c)).slice(0, 5);
@@ -122,7 +155,8 @@ async function generateConceptWithOllama() {
     throw new Error(`❌ Ollama service is not available at ${OLLAMA_URL}`);
   }
 
-  const technique = getRandomTechnique();
+  const previousHistory = getConceptHistory();
+  const technique = getDiverseTechnique(previousHistory);
   const tone = getRandomTone();
   
   const prompt = `You are an art concept generator specializing in SURREAL, UNHINGED, and EXPERIMENTAL generative art. 
@@ -162,8 +196,8 @@ Response MUST be valid JSON.`;
   console.log(`   Title: ${concept.title}`);
   console.log(`   Technique: ${concept.technique}`);
 
-  const history = getConceptHistory();
-  history.push({
+  const updatedHistory = getConceptHistory();
+  updatedHistory.push({
     title: concept.title,
     date: new Date().toISOString(),
     technique: concept.technique,
@@ -171,7 +205,7 @@ Response MUST be valid JSON.`;
   });
 
   fs.writeFileSync(HISTORY_FILE, JSON.stringify({
-    concepts: history,
+    concepts: updatedHistory,
     lastUpdated: new Date().toISOString()
   }, null, 2));
 
