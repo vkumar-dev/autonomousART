@@ -334,5 +334,26 @@
     ],
     "status": "promoted",
     "note": "Fallback chain maintained in git history via GitModelQueue"
+  },
+  {
+    "timestamp": "2026-06-28T04:02:18.389Z",
+    "previousPrimary": "qwen35-4b",
+    "newPrimary": "qwen35-4b",
+    "testResults": [
+      {
+        "model": "qwen35-4b",
+        "tested": false,
+        "reason": "Not available locally",
+        "status": "pending_pull"
+      },
+      {
+        "model": "qwen35-9b",
+        "tested": false,
+        "reason": "Not available locally",
+        "status": "pending_pull"
+      }
+    ],
+    "status": "promoted",
+    "note": "Fallback chain maintained in git history via GitModelQueue"
   }
 ]
