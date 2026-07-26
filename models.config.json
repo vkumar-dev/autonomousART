@@ -1,8 +1,8 @@
 {
   "primaryModel": "qwen35-4b",
   "fallbackModel": "llama3.2:3b",
-  "lastUpdated": "2026-07-19T02:54:30.399Z",
-  "lastVerified": "2026-07-19T02:54:30.399Z",
+  "lastUpdated": "2026-07-26T02:56:37.858Z",
+  "lastVerified": "2026-07-26T02:56:37.858Z",
   "locked": false,
   "metadata": {
     "source": "qwen3.5-4b",
