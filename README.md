@@ -4,7 +4,7 @@
 
 ## How it Works
 - **Model Discovery**: Queries Hugging Face Hub dynamically for open, non-gated GGUF models matching CPU compute limits.
-- **Concept**: Every 6 hours, local llama.cpp inference generates a unique, surreal art concept.
+- **Concept**: Once a day, local llama.cpp inference generates a unique, surreal art concept.
 - **Generation**: A Canvas-based renderer creates the artwork (fractals, particles, cellular automata, noise).
 - **Deployment**: Each piece is committed and auto-deployed to GitHub Pages.
 

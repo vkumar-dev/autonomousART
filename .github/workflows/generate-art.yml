@@ -2,7 +2,8 @@ name: Generate Art
 
 on:
   schedule:
-    - cron: '30 */6 * * *'
+    # One new artwork per day (02:30 UTC)
+    - cron: '30 2 * * *'
   workflow_dispatch:
     inputs:
       prompt:
