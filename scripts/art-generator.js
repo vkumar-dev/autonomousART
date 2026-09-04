@@ -46,13 +46,28 @@ function generateHTML(concept) {
     ? `
     // --- AI-GENERATED CANVAS CODE ---
     (function() {
+      let customSucceeded = false;
       try {
         ${concept.customCode}
         if (typeof init === 'function') {
           init();
         }
+        customSucceeded = true;
       } catch (err) {
         console.error('Custom AI art execution error:', err);
+      }
+
+      if (!customSucceeded) {
+        console.log('Falling back to procedural engine...');
+        // Run the procedural engine in its own scope: if its declarations were
+        // hoisted next to the AI code's, a name collision would be a parse-time
+        // SyntaxError (unreachable by try/catch) and blank the whole canvas.
+        (function() {
+          ${getArtCode(technique, colors, concept)}
+          if (typeof init === 'function') {
+            init();
+          }
+        })();
       }
     })();
     `
@@ -185,6 +200,13 @@ function generateHTML(concept) {
     const height = canvas.height;
     const colors = ${JSON.stringify(colors)};
     const technique = '${technique}';
+
+    // Allow AI models querying document.getElementById('canvas') or 'artCanvas' to succeed
+    const _origGetElementById = document.getElementById.bind(document);
+    document.getElementById = function(id) {
+      if (id === 'canvas' || id === 'artCanvas') return canvas;
+      return _origGetElementById(id);
+    };
 
     function random(min, max) {
       return Math.random() * (max - min) + min;
