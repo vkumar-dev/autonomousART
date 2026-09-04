@@ -44,30 +44,123 @@ function generateHTML(concept) {
 
   const artScript = hasCustomCode
     ? `
-    // --- AI-GENERATED CANVAS CODE ---
+    // --- AI-GENERATED CANVAS CODE (watchdog-guarded) ---
     (function() {
-      let customSucceeded = false;
-      try {
-        ${concept.customCode}
-        if (typeof init === 'function') {
-          init();
-        }
-        customSucceeded = true;
-      } catch (err) {
-        console.error('Custom AI art execution error:', err);
+      // The AI writes arbitrary code, so before trusting its output we probe the
+      // real canvas pixels. If the code throws OR leaves the canvas effectively
+      // blank after a few animation frames, we stop its loop and run the proven
+      // procedural engine instead. This prevents silently-deployed black pages.
+      const nativeRaf = (typeof window !== 'undefined' && window.requestAnimationFrame)
+        ? window.requestAnimationFrame.bind(window)
+        : null;
+
+      const frameQueue = [];
+      let scheduled = false;
+      let phase = 'probing';   // 'probing' -> 'running' (AI kept) | 'fallback'
+      let probeFrames = 0;
+      let frameTime = 0;
+      const PROBE_FRAMES = 12;
+
+      function schedule() {
+        if (scheduled || !nativeRaf) return;
+        scheduled = true;
+        nativeRaf(flush);
       }
 
-      if (!customSucceeded) {
-        console.log('Falling back to procedural engine...');
-        // Run the procedural engine in its own scope: if its declarations were
-        // hoisted next to the AI code's, a name collision would be a parse-time
-        // SyntaxError (unreachable by try/catch) and blank the whole canvas.
+      // Intercept rAF so we can count frames for the probe and, when needed,
+      // fully stop the AI animation before the fallback engine starts.
+      window.requestAnimationFrame = function(cb) {
+        frameQueue.push(cb);
+        schedule();
+        return 0;
+      };
+      window.cancelAnimationFrame = function() {};
+
+      function flush() {
+        scheduled = false;
+        frameTime += 16;
+        const cbs = frameQueue.splice(0, frameQueue.length);
+        for (let i = 0; i < cbs.length; i++) {
+          try { cbs[i](frameTime); } catch (e) { console.error('Animation frame error:', e); }
+        }
+        if (phase === 'probing') {
+          probeFrames++;
+          if (probeFrames >= PROBE_FRAMES) decide();
+        }
+        if (phase === 'probing') {
+          if (!scheduled) schedule();
+        } else if ((phase === 'running' || phase === 'fallback') && frameQueue.length > 0 && !scheduled) {
+          schedule();
+        }
+      }
+
+      function isCanvasBlank() {
+        try {
+          const img = ctx.getImageData(0, 0, width, height);
+          const d = img.data;
+          const step = 32;
+          for (let y = 0; y < height; y += step) {
+            for (let x = 0; x < width; x += step) {
+              const i = (y * width + x) * 4;
+              // Visible = any non-transparent pixel that is not near-black.
+              if (d[i + 3] > 0 && (d[i] + d[i + 1] + d[i + 2]) > 30) return false;
+            }
+          }
+          return true;
+        } catch (e) {
+          return false; // pixels unreadable (rare); assume the code drew something
+        }
+      }
+
+      function runFallback(reason) {
+        console.log('Falling back to procedural engine (' + reason + ')...');
+        phase = 'fallback';
+        frameQueue.length = 0; // halt the AI animation loop
+        ctx.clearRect(0, 0, width, height);
+        // Own scope: declarations can never collide with the AI code's names
+        // (a collision would be a parse-time SyntaxError no try/catch can catch).
         (function() {
           ${getArtCode(technique, colors, concept)}
           if (typeof init === 'function') {
             init();
           }
         })();
+        if (frameQueue.length > 0 && !scheduled) schedule();
+      }
+
+      function decide() {
+        if (isCanvasBlank()) {
+          runFallback('AI code left the canvas blank');
+        } else {
+          phase = 'running';
+        }
+      }
+
+      let customSucceeded = false;
+      try {
+        // Run the AI code in its own scope so its top-level declarations can
+        // never collide with the watchdog's own identifiers.
+        (function() {
+          ${concept.customCode}
+          if (typeof init === 'function') {
+            init();
+          }
+        })();
+        customSucceeded = true;
+      } catch (err) {
+        console.error('Custom AI art execution error:', err);
+      }
+
+      if (!customSucceeded) {
+        runFallback('AI code threw an error');
+      } else if (frameQueue.length === 0) {
+        // No animation requested: judge the synchronous drawing right away.
+        if (isCanvasBlank()) runFallback('AI code left the canvas blank');
+        else phase = 'running';
+      } else if (!nativeRaf) {
+        phase = 'running'; // can't probe without rAF; keep whatever ran
+      } else {
+        schedule(); // animate, then probe the pixels after a few frames
       }
     })();
     `
