@@ -179,111 +179,134 @@ function generateHTML(concept) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${concept.title} - autonomousART</title>
   <style>
+    :root {
+      --paper: #f2eee6;
+      --ink: #1b1814;
+      --ink-soft: #56504a;
+      --ink-faint: #938c81;
+      --line: rgba(27, 24, 20, 0.14);
+      --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+      --sans: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
     body {
-      background: #050505;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
       min-height: 100vh;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      color: #fff;
-      padding: 20px;
+      display: flex;
+      justify-content: center;
+      padding: 44px 26px 90px;
     }
-    .container { max-width: 1200px; width: 100%; text-align: center; }
-    .frame {
-      background: #000;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 25px 80px rgba(0,0,0,0.6);
-      margin-bottom: 30px;
-    }
-    canvas {
+    .page { width: 100%; max-width: 780px; }
+    .work { width: 100%; }
+    .plate {
+      position: relative;
       width: 100%;
-      height: auto;
-      display: block;
+      background: #0f0f0d;
+      line-height: 0;
+      box-shadow: 0 1px 2px rgba(27,24,20,0.04), 0 40px 90px -48px rgba(27,24,20,0.5);
     }
-    .info {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(10px);
-      padding: 30px;
-      border-radius: 16px;
-      max-width: 700px;
-      margin: 0 auto;
+    canvas { width: 100%; height: auto; display: block; }
+    .caption { padding-top: 26px; }
+    .kicker {
+      font-size: 10px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 16px;
     }
     h1 {
-      font-size: 28px;
-      margin-bottom: 15px;
-      background: linear-gradient(135deg, ${colors[0]}, ${colors[1] || '#999'});
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(25px, 5vw, 36px);
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      margin-bottom: 16px;
     }
-    p { font-size: 16px; line-height: 1.7; opacity: 0.9; margin-bottom: 20px; }
-    .meta {
+    .desc {
+      font-family: var(--serif);
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--ink-soft);
+      max-width: 62ch;
+    }
+    .meta-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
+      align-items: center;
+      gap: 10px 26px;
       margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
     }
-    .tag {
-      background: rgba(255,255,255,0.1);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-    }
-    .colors {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      margin-top: 20px;
-    }
-    .swatch {
-      width: 32px;
-      height: 32px;
+    .palette { display: inline-flex; gap: 7px; align-items: center; }
+    .palette i {
+      width: 11px;
+      height: 11px;
       border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(27,24,20,0.16);
     }
     .back {
       display: inline-block;
-      margin-top: 25px;
-      color: #fff;
+      margin-top: 40px;
+      font-size: 10.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
       text-decoration: none;
-      background: rgba(255,255,255,0.1);
-      padding: 12px 28px;
-      border-radius: 30px;
-      font-size: 14px;
-      transition: all 0.3s;
+      color: var(--ink);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 4px;
+      transition: border-color 0.4s ease;
     }
-    .back:hover {
-      background: rgba(255,255,255,0.2);
-      transform: translateY(-2px);
+    .back:hover { border-color: var(--ink); }
+
+    /* #stage: frame-only mode used when the piece is embedded (thumbnails, viewing room) */
+    html.stage body { padding: 0; display: block; }
+    html.stage .page {
+      width: 100%;
+      max-width: none;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    html.stage .work { width: min(100vw, 100vh); }
+    html.stage .plate { width: 100%; box-shadow: none; }
+    html.stage .caption,
+    html.stage .back { display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
     }
   </style>
+  <script>
+    if (location.hash === '#stage') document.documentElement.classList.add('stage');
+  </script>
 </head>
 <body>
-  <div class="container">
-    <div class="frame">
-      <canvas id="artCanvas" width="1024" height="1024"></canvas>
-    </div>
-
-    <div class="info">
-      <h1>${concept.title}</h1>
-      <p>${concept.concept || 'A unique generative art piece.'}</p>
-
-      <div class="meta">
-        <span class="tag">🎨 ${concept.technique || 'Generative Art'}</span>
-        <span class="tag">🖼️ ${concept.interaction || 'Animated'}</span>
-        ${hasCustomCode ? '<span class="tag">✨ AI Code</span>' : ''}
+  <div class="page">
+    <figure class="work">
+      <div class="plate">
+        <canvas id="artCanvas" width="1024" height="1024"></canvas>
       </div>
-
-      <div class="colors">
-        ${colors.slice(0, 5).map(c => `<div class="swatch" style="background:${c}"></div>`).join('')}
-      </div>
-    </div>
-
-    <a href="../index.html" class="back">← Back to Gallery</a>
+      <figcaption class="caption">
+        <p class="kicker" id="artAccession">Autonomous Art &middot; Generative</p>
+        <h1>${concept.title}</h1>
+        <p class="desc">${concept.concept || 'A generative artwork composed by an autonomous system.'}</p>
+        <div class="meta-row">
+          <span>${concept.technique || 'Generative Art'}</span>
+          <span>${concept.interaction || 'Animated'}</span>
+          <span class="palette">${colors.slice(0, 5).map(c => `<i style="background:${c}"></i>`).join('')}</span>
+        </div>
+      </figcaption>
+    </figure>
+    <a class="back" href="../../../../index.html">&larr; Return to collection</a>
   </div>
 
   <script>
@@ -310,6 +333,16 @@ function generateHTML(concept) {
     }
 
     ${artScript}
+
+    // Accession caption: derive the display date from this file's timestamp.
+    try {
+      const m = /([0-9]{8})-([0-9]{6})-([^/]+)[.]html$/.exec(location.pathname);
+      if (m) {
+        const d = new Date(+m[1].slice(0, 4), +m[1].slice(4, 6) - 1, +m[1].slice(6, 8));
+        const el = document.getElementById('artAccession');
+        if (el) el.textContent = 'Autonomous Art · ' + d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).toUpperCase();
+      }
+    } catch (e) {}
   </script>
 </body>
 </html>`;

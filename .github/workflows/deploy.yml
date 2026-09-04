@@ -8,7 +8,7 @@ on:
       - 'artworks/**'
       - 'artworks-list.json'
       - 'index.html'
-      - 'gallery.html'
+      - 'art-viewer.html'
       - 'scripts/**'
       - 'styles/**'
   workflow_dispatch:
