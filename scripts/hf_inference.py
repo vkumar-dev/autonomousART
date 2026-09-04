@@ -20,9 +20,9 @@ ROOT = Path(__file__).resolve().parent.parent
 MODEL_FILE = ROOT / "selected-model.json"
 DEFAULT_MODEL_DIR = Path(os.environ.get("LLAMA_MODEL_DIR", ROOT / ".models"))
 DEFAULT_SYSTEM = (
-    "You are an expert generative art director and surrealist concept designer. "
+    "You are an elite creative coding artist and generative art director. "
     "Do NOT output thinking tags or reasoning preambles. "
-    "Immediately output only the requested valid JSON object matching the format."
+    "Immediately output the frontmatter and the javascript code block matching the requested format."
 )
 
 
@@ -151,7 +151,7 @@ def main() -> int:
     parser.add_argument("--prompt", help="Prompt text")
     parser.add_argument("--prompt-file", help="Path to a prompt file")
     parser.add_argument("--system", default=DEFAULT_SYSTEM, help="System prompt")
-    parser.add_argument("--max-tokens", type=int, default=int(os.environ.get("LLAMA_MAX_TOKENS", "2048")))
+    parser.add_argument("--max-tokens", type=int, default=int(os.environ.get("LLAMA_MAX_TOKENS", "3072")))
     parser.add_argument("--temperature", type=float, default=0.7)
     parser.add_argument("--model-dir", default=str(DEFAULT_MODEL_DIR))
     args = parser.parse_args()

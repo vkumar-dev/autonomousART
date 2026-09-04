@@ -2,22 +2,24 @@
 
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 const HfInference = require('./hf-inference');
 
 const ROOT = path.join(__dirname, '..');
 const CONCEPT_FILE = path.join(ROOT, 'selected-concept.json');
 const HISTORY_FILE = path.join(ROOT, 'concept-history.json');
-const MODEL_FILE = path.join(ROOT, 'selected-model.json');
 
 const ART_TECHNIQUES = [
-  'Fractal Mathematics',
-  'Particle Dynamics',
-  'Perlin Noise Landscapes',
-  'Generative Geometry',
-  'Cellular Automata',
-  'Color Theory',
-  'Interactive Physics',
-  'Abstract Expressionism'
+  'Clifford Strange Attractor',
+  'Hyperbolic Kaleidoscope',
+  'Quantum Flow Field',
+  'Phyllotaxis Spiral Matrix',
+  'Reaction-Diffusion Labyrinth',
+  'Neural Wave Harmonics',
+  'Fractal Flame Dynamics',
+  'Cybernetic Glitch Lattice',
+  'Particle Singularity Vortex',
+  'Cellular Automata Topography'
 ];
 
 const EMOTIONAL_TONES = [
@@ -72,78 +74,109 @@ function getRandomTone() {
   return EMOTIONAL_TONES[Math.floor(Math.random() * EMOTIONAL_TONES.length)];
 }
 
+function validateJsSyntax(code) {
+  if (!code || typeof code !== 'string') return false;
+  try {
+    new vm.Script(code);
+    return true;
+  } catch (e) {
+    console.warn('⚠️ Generated JavaScript syntax error:', e.message);
+    return false;
+  }
+}
+
 function parseConceptResponse(response, chosenTechnique, chosenTone) {
   console.log('📝 Parsing model response...\n');
 
   let cleaned = response.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 
-  // Strip markdown code fences if present
-  const codeBlockMatch = cleaned.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/i);
-  if (codeBlockMatch) {
-    cleaned = codeBlockMatch[1].trim();
-  }
-
   const defaultConcept = {
     title: 'Surreal Vision',
     concept: 'A generative digital abstraction with algorithmic depth and morphing structures.',
-    technique: chosenTechnique || 'Fractal Mathematics',
+    technique: chosenTechnique || 'Quantum Flow Field',
     colors: ['#1a1a2e', '#16213e', '#0f3460', '#e94560', '#53354a'],
     interaction: 'Animated',
-    tone: chosenTone || 'Cosmic and transcendent'
+    tone: chosenTone || 'Cosmic and transcendent',
+    customCode: null
   };
 
-  try {
+  // 1. Extract JavaScript code block if present
+  const codeBlockMatch = cleaned.match(/```(?:javascript|js)?\s*\n([\s\S]*?)\n```/i);
+  if (codeBlockMatch) {
+    const rawCode = codeBlockMatch[1].trim();
+    if (validateJsSyntax(rawCode)) {
+      console.log('✅ Extracted and validated AI-generated canvas code');
+      defaultConcept.customCode = rawCode;
+    } else {
+      console.warn('⚠️ Code failed syntax check, will use enhanced procedural fallback');
+    }
+    // Remove the code block so it doesn't interfere with frontmatter/metadata parsing
+    cleaned = cleaned.replace(codeBlockMatch[0], '').trim();
+  }
+
+  // 2. Parse Frontmatter metadata
+  const fmMatch = cleaned.match(/---\s*\n([\s\S]*?)\n---/);
+  const metadataBlock = fmMatch ? fmMatch[1] : cleaned;
+
+  // Try title
+  const titleMatch = metadataBlock.match(/^title:\s*["']?(.+?)["']?\s*$/im);
+  if (titleMatch) {
+    defaultConcept.title = titleMatch[1].replace(/["']/g, '').slice(0, 50).trim();
+  }
+
+  // Try concept description
+  const conceptMatch = metadataBlock.match(/^concept:\s*["']?(.+?)["']?\s*$/im);
+  if (conceptMatch) {
+    defaultConcept.concept = conceptMatch[1].replace(/["']/g, '').slice(0, 300).trim();
+  }
+
+  // Try technique
+  const techMatch = metadataBlock.match(/^technique:\s*["']?(.+?)["']?\s*$/im);
+  if (techMatch) {
+    defaultConcept.technique = techMatch[1].replace(/["']/g, '').slice(0, 60).trim();
+  }
+
+  // Try colors
+  const colorsMatch = metadataBlock.match(/colors:\s*\[?(.*?)\]?$/im);
+  if (colorsMatch) {
+    const foundColors = colorsMatch[1].match(/#[0-9a-fA-F]{3,8}/g);
+    if (foundColors && foundColors.length >= 3) {
+      defaultConcept.colors = foundColors.slice(0, 5);
+    }
+  }
+
+  // Try tone
+  const toneMatch = metadataBlock.match(/^tone:\s*["']?(.+?)["']?\s*$/im);
+  if (toneMatch) {
+    defaultConcept.tone = toneMatch[1].replace(/["']/g, '').slice(0, 50).trim();
+  }
+
+  // Fallback: If title wasn't found via frontmatter, check for JSON mode output
+  if (defaultConcept.title === 'Surreal Vision') {
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      if (parsed.title) defaultConcept.title = String(parsed.title).slice(0, 50).trim();
-      if (parsed.concept) defaultConcept.concept = String(parsed.concept).slice(0, 300).trim();
-      if (parsed.technique) {
-        const text = String(parsed.technique).toLowerCase();
-        const found = ART_TECHNIQUES.find(t => text.includes(t.toLowerCase()));
-        if (found) {
-          defaultConcept.technique = found;
-        } else {
-          const words = text.split(/\s+/);
-          const fuzzy = ART_TECHNIQUES.find(t => {
-            const tWords = t.toLowerCase().split(/\s+/);
-            return tWords.some(tw => words.some(w => w.includes(tw) || tw.includes(w)));
-          });
-          if (fuzzy) defaultConcept.technique = fuzzy;
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.title) defaultConcept.title = String(parsed.title).slice(0, 50).trim();
+        if (parsed.concept) defaultConcept.concept = String(parsed.concept).slice(0, 300).trim();
+        if (parsed.technique) defaultConcept.technique = String(parsed.technique).slice(0, 60).trim();
+        if (Array.isArray(parsed.colors)) {
+          const valid = parsed.colors.filter(c => typeof c === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c));
+          if (valid.length >= 3) defaultConcept.colors = valid.slice(0, 5);
         }
-      }
-      if (Array.isArray(parsed.colors) && parsed.colors.length > 0) {
-        const validColors = parsed.colors.filter(c => typeof c === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c));
-        if (validColors.length > 0) defaultConcept.colors = validColors.slice(0, 5);
-      }
-      if (parsed.tone) {
-        const text = String(parsed.tone).toLowerCase();
-        const found = EMOTIONAL_TONES.find(t => text.includes(t.toLowerCase()));
-        if (found) defaultConcept.tone = found;
-      }
-      console.log('✅ Successfully parsed JSON response');
-    } else {
-      console.warn('⚠️ No JSON found in response, falling back to regex parsing');
-      const lines = cleaned.split('\n').map(l => l.trim()).filter(Boolean);
-      lines.forEach(line => {
-        const titleMatch = line.match(/^title:\s*(.+)$/i);
-        if (titleMatch) defaultConcept.title = titleMatch[1].trim().replace(/^["']|["']$/g, '').slice(0, 50);
-        const techniqueMatch = line.match(/^technique:\s*(.+)$/i);
-        if (techniqueMatch) {
-          const found = ART_TECHNIQUES.find(t => techniqueMatch[1].toLowerCase().includes(t.toLowerCase()));
-          if (found) defaultConcept.technique = found;
+        if (parsed.tone) defaultConcept.tone = String(parsed.tone).slice(0, 50).trim();
+        if (parsed.code && !defaultConcept.customCode && validateJsSyntax(parsed.code)) {
+          defaultConcept.customCode = parsed.code.trim();
         }
-      });
+      } catch (e) {}
     }
-  } catch (error) {
-    console.error('❌ Parse error:', error.message);
   }
 
   return defaultConcept;
 }
 
 async function generateConcept() {
-  console.log('🎨 Generating art concept with Hugging Face GGUF model...\n');
+  console.log('🎨 Generating art concept & canvas code with Hugging Face GGUF model...\n');
 
   const inference = new HfInference();
   const model = inference.ensureModelSelection();
@@ -153,29 +186,34 @@ async function generateConcept() {
   const technique = getDiverseTechnique(previousHistory);
   const tone = getRandomTone();
 
-  const prompt = `You are an art concept generator specializing in SURREAL, UNHINGED, and EXPERIMENTAL generative art.
-Your goal is to push the boundaries of computational beauty into the realm of the bizarre and the chaotic.
+  const prompt = `You are an elite creative coding artist and generative art director.
+Create a unique, visually mesmerizing, and mathematically creative generative artwork for HTML5 Canvas.
+Do NOT create simple floating circles or random dots. Think about sacred geometry, strange attractors, reaction-diffusion, hyperbolic lattices, phyllotaxis spirals, kaleidoscopic reflections, neural wave dynamics, or chaotic fluid simulations.
 
-Create ONE concept for a generative artwork.
-Return ONLY a JSON object in this exact format:
-{
-  "title": "2-4 word surreal name",
-  "concept": "1-2 sentences describing bizarre visual elements and chaotic evolution",
-  "technique": "${technique}",
-  "colors": ["#hex1", "#hex2", "#hex3", "#hex4", "#hex5"],
-  "tone": "${tone}"
-}
+Format your response EXACTLY like this:
 
-Available techniques: ${ART_TECHNIQUES.join(', ')}
-Available tones: ${EMOTIONAL_TONES.join(', ')}
+---
+title: [2-4 word surreal art title]
+concept: [1-2 sentences describing the visual evolution, mathematics, and motion]
+technique: ${technique}
+colors: [#hex1, #hex2, #hex3, #hex4, #hex5]
+tone: ${tone}
+---
 
-Think outside the box. Avoid harmony; embrace chaos.
-Response MUST be valid JSON.`;
+\`\`\`javascript
+// Complete creative HTML5 canvas animation or generative drawing.
+// Available in scope: canvas, ctx, width (1024), height (1024), colors (array of 5 hex strings), random(min, max), randomChoice(arr).
+// Use requestAnimationFrame for smooth animation, or generate an intricate multi-layered composition.
+// Start your animation or drawing immediately.
+\`\`\`
 
-  console.log('📡 Calling local Hugging Face GGUF inference...\n');
+Response MUST follow this format with frontmatter and a \`\`\`javascript code block.`;
+
+  console.log('📡 Calling local Hugging Face GGUF inference (generating concept & canvas code)...\n');
   const result = inference.generate(prompt, {
-    temperature: 0.7,
-    maxTokens: 1024
+    temperature: 0.75,
+    maxTokens: 3072,
+    system: "You are an elite creative coding artist and generative art director. Output frontmatter and a complete javascript code block for the HTML5 canvas."
   });
 
   if (!result.success) {
@@ -191,6 +229,7 @@ Response MUST be valid JSON.`;
   console.log(`   Title: ${concept.title}`);
   console.log(`   Technique: ${concept.technique}`);
   console.log(`   Colors: ${concept.colors.join(', ')}`);
+  console.log(`   Custom AI Canvas Code: ${concept.customCode ? 'YES (Valid JS)' : 'NO (Using procedural engine)'}`);
 
   const updatedHistory = getConceptHistory();
   updatedHistory.push({
@@ -198,7 +237,8 @@ Response MUST be valid JSON.`;
     date: new Date().toISOString(),
     technique: concept.technique,
     generated: 'hf-gguf',
-    model: model.model || 'hf-model'
+    model: model.model || 'hf-model',
+    hasCustomCode: !!concept.customCode
   });
 
   fs.writeFileSync(HISTORY_FILE, JSON.stringify({

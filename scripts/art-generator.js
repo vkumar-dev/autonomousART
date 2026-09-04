@@ -2,9 +2,20 @@
 
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
 const ARTWORKS_DIR = path.join(__dirname, '..', 'artworks');
 const CONCEPT_FILE = path.join(__dirname, '..', 'selected-concept.json');
+
+function validateJsSyntax(code) {
+  if (!code || typeof code !== 'string') return false;
+  try {
+    new vm.Script(code);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
 function generateCanvasArt(concept) {
   const timestamp = generateTimestamp();
@@ -27,8 +38,31 @@ function generateCanvasArt(concept) {
 }
 
 function generateHTML(concept) {
-  const colors = concept.colors || ['#667eea', '#764ba2', '#f093fb', '#4facfe'];
+  const colors = concept.colors || ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff'];
   const technique = (concept.technique || 'Abstract').toLowerCase();
+  const hasCustomCode = concept.customCode && validateJsSyntax(concept.customCode);
+
+  const artScript = hasCustomCode
+    ? `
+    // --- AI-GENERATED CANVAS CODE ---
+    (function() {
+      try {
+        ${concept.customCode}
+        if (typeof init === 'function') {
+          init();
+        }
+      } catch (err) {
+        console.error('Custom AI art execution error:', err);
+      }
+    })();
+    `
+    : `
+    // --- PROCEDURAL GENERATIVE ENGINE ---
+    ${getArtCode(technique, colors, concept)}
+    if (typeof init === 'function') {
+      init();
+    }
+    `;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -133,6 +167,7 @@ function generateHTML(concept) {
       <div class="meta">
         <span class="tag">🎨 ${concept.technique || 'Generative Art'}</span>
         <span class="tag">🖼️ ${concept.interaction || 'Animated'}</span>
+        ${hasCustomCode ? '<span class="tag">✨ AI Code</span>' : ''}
       </div>
 
       <div class="colors">
@@ -146,6 +181,8 @@ function generateHTML(concept) {
   <script>
     const canvas = document.getElementById('artCanvas');
     const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
     const colors = ${JSON.stringify(colors)};
     const technique = '${technique}';
 
@@ -157,9 +194,7 @@ function generateHTML(concept) {
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    ${getArtCode(technique, colors, concept)}
-
-    init();
+    ${artScript}
   </script>
 </body>
 </html>`;
@@ -167,506 +202,435 @@ function generateHTML(concept) {
 
 function getArtCode(technique, colors, concept) {
   const code = {
-    'fractal': `
-    let zoom = 1, offsetX = 0, offsetY = 0;
-    const maxIter = 100;
-    const entropy = Math.random() * 0.1;
-
-    function mandelbrot(cx, cy) {
-      let x = 0, y = 0, x2 = 0, y2 = 0, iter = 0;
-      while (x2 + y2 <= 4 && iter < maxIter) {
-        y = 2 * x * y + cy + (Math.random() - 0.5) * entropy;
-        x = x2 - y2 + cx + (Math.random() - 0.5) * entropy;
-        x2 = x * x;
-        y2 = y * y;
-        iter++;
-      }
-      return iter;
-    }
-
-    function draw() {
-      const w = canvas.width, h = canvas.height;
-      const imgData = ctx.createImageData(w, h);
-      
-      for (let py = 0; py < h; py++) {
-        for (let px = 0; px < w; px++) {
-          const x0 = (px - w / 2) / (0.5 * zoom * w) + offsetX;
-          const y0 = (py - h / 2) / (0.5 * zoom * h) + offsetY;
-          const iter = mandelbrot(x0, y0);
-          const idx = (py * w + px) * 4;
-          
-          if (iter === maxIter) {
-            imgData.data[idx] = imgData.data[idx+1] = imgData.data[idx+2] = 0;
-          } else {
-            const t = iter / maxIter;
-            const color = colors[Math.floor(t * colors.length + Math.sin(t * 10)) % colors.length];
-            imgData.data[idx] = parseInt(color.slice(1, 3), 16);
-            imgData.data[idx + 1] = parseInt(color.slice(3, 5), 16);
-            imgData.data[idx + 2] = parseInt(color.slice(5, 7), 16);
-          }
-          imgData.data[idx + 3] = 255;
-        }
-      }
-      ctx.putImageData(imgData, 0, 0);
-    }
-
-    let frame = 0;
-    function animate() {
-      zoom = 1 + Math.sin(frame * 0.01) * 0.5 + Math.random() * 0.05;
-      offsetX = Math.cos(frame * 0.005) * 0.5 + (Math.random() - 0.5) * 0.1;
-      offsetY = Math.sin(frame * 0.005) * 0.5 + (Math.random() - 0.5) * 0.1;
-      draw();
-      frame++;
-      requestAnimationFrame(animate);
-    }
-
-    function init() {
-      animate();
-    }
-    `,
-
-    'particle': `
-    const particles = [];
-
-    class Particle {
-      constructor() {
-        this.x = random(0, canvas.width);
-        this.y = random(0, canvas.height);
-        this.vx = random(-5, 5);
-        this.vy = random(-5, 5);
-        this.size = random(2, 20);
-        this.color = randomChoice(colors);
-        this.jitter = Math.random() * 2;
-      }
-
-      update() {
-        this.x += this.vx + (Math.random() - 0.5) * this.jitter;
-        this.y += this.vy + (Math.random() - 0.5) * this.jitter;
-        if (this.x < 0 || this.x > canvas.width) this.vx *= -1.1;
-        if (this.y < 0 || this.y > canvas.height) this.vy *= -1.1;
-        
-        // Unhinged behavior: particles occasionally explode
-        if (Math.random() > 0.999) {
-          this.vx *= 5;
-          this.vy *= 5;
-        }
-        
-        this.vx *= 0.99;
-        this.vy *= 0.99;
-      }
-
-      draw() {
-        ctx.beginPath();
-        ctx.fillStyle = this.color;
-        if (Math.random() > 0.95) ctx.fillStyle = '#fff';
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-        
-        if (Math.random() > 0.9) {
-          ctx.strokeStyle = this.color;
-          ctx.lineWidth = 1;
-          ctx.lineTo(random(0, canvas.width), random(0, canvas.height));
-          ctx.stroke();
-        }
-      }
-    }
-
-    function init() {
-      for (let i = 0; i < 50; i++) particles.push(new Particle());
-      animate();
-    }
-
-    function animate() {
-      ctx.fillStyle = 'rgba(5, 5, 10, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(p => { p.update(); p.draw(); });
-      if (Math.random() > 0.98) {
-        ctx.save();
-        ctx.translate(random(-50, 50), random(-50, 50));
-        ctx.drawImage(canvas, 0, 0);
-        ctx.restore();
-      }
-      requestAnimationFrame(animate);
-    }
-    `,
-
-    'glitch': `
-    function init() {
-      animate();
-    }
-
-    function animate() {
-      // Background with trails
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      for (let i = 0; i < 10; i++) {
-        const x = random(0, canvas.width);
-        const y = random(0, canvas.height);
-        const w = random(10, 400);
-        const h = random(2, 50);
-        
-        ctx.fillStyle = randomChoice(colors);
-        ctx.globalAlpha = 0.8;
-        ctx.fillRect(x, y, w, h);
-        
-        // Randomly copy and shift chunks of the canvas
-        if (Math.random() > 0.7) {
-          const sx = random(0, canvas.width - 100);
-          const sy = random(0, canvas.height - 100);
-          const sw = random(50, 200);
-          const sh = random(50, 200);
-          const dx = sx + random(-50, 50);
-          const dy = sy + random(-50, 50);
-          ctx.drawImage(canvas, sx, sy, sw, sh, dx, dy, sw, sh);
-        }
-      }
-
-      // Digital noise spikes
-      if (Math.random() > 0.9) {
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = random(1, 5);
-        ctx.beginPath();
-        const ly = random(0, canvas.height);
-        ctx.moveTo(0, ly);
-        ctx.lineTo(canvas.width, ly + random(-20, 20));
-        ctx.stroke();
-      }
-
-      requestAnimationFrame(animate);
-    }
-    `,
-
-    'chaos': `
-    let points = [];
-    function init() {
-      for(let i=0; i<5; i++) points.push({x: random(0, canvas.width), y: random(0, canvas.height)});
-      animate();
-    }
-
+    // 1. Clifford Strange Attractor: Cosmic silk ribbons
+    'attractor': `
+    let a = random(1.2, 2.1), b = random(-2.5, -1.2);
+    let c = random(1.1, 1.9), d = random(0.5, 1.4);
+    let x = 0.1, y = 0.1;
     let t = 0;
+
+    function init() {
+      ctx.fillStyle = '#050508';
+      ctx.fillRect(0, 0, width, height);
+      animate();
+    }
+
     function animate() {
-      ctx.fillStyle = 'rgba(5, 0, 15, 0.02)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+      ctx.fillStyle = 'rgba(5, 5, 10, 0.04)';
+      ctx.fillRect(0, 0, width, height);
+
       ctx.save();
-      ctx.translate(canvas.width/2, canvas.height/2);
-      ctx.rotate(t);
-      
-      for (let i = 0; i < 100; i++) {
-        const angle = random(0, Math.PI * 2);
-        const dist = Math.tan(t + i) * 200;
-        const x = Math.cos(angle) * dist;
-        const y = Math.sin(angle) * dist;
-        
-        ctx.fillStyle = colors[i % colors.length];
-        ctx.beginPath();
-        ctx.arc(x, y, random(1, 5), 0, Math.PI * 2);
-        ctx.fill();
-        
-        if (Math.random() > 0.99) {
-           ctx.font = '20px monospace';
-           ctx.fillText(Math.random().toString(16).slice(2, 8), x, y);
-        }
+      ctx.translate(width / 2, height / 2);
+      ctx.rotate(Math.sin(t * 0.05) * 0.2);
+
+      const scale = width * 0.22;
+      const batch = 2500;
+      for (let i = 0; i < batch; i++) {
+        const nx = Math.sin(a * y) + c * Math.cos(a * x);
+        const ny = Math.sin(b * x) + d * Math.cos(b * y);
+        x = nx;
+        y = ny;
+
+        const colorIdx = Math.floor(Math.abs(x * 3 + y * 2 + t)) % colors.length;
+        ctx.fillStyle = colors[colorIdx];
+        ctx.fillRect(x * scale, y * scale, 1.2, 1.2);
       }
       ctx.restore();
-      
-      t += 0.01;
+
+      a += Math.sin(t * 0.01) * 0.0008;
+      b += Math.cos(t * 0.012) * 0.0008;
+      t += 0.03;
       requestAnimationFrame(animate);
     }
     `,
 
-    'wave': `
-    const waves = [];
+    // 2. Quantum Curl Flow Field
+    'flow': `
+    const numParticles = 600;
+    const particles = [];
+    let t = 0;
 
-    class Wave {
-      constructor() {
-        this.y = random(0, canvas.height);
-        this.amplitude = random(20, 80);
-        this.frequency = random(0.005, 0.02);
-        this.phase = random(0, Math.PI * 2);
-        this.speed = random(0.02, 0.05);
-        this.color = randomChoice(colors);
-      }
-
-      draw(time) {
-        ctx.beginPath();
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 3;
-        ctx.globalAlpha = 0.7;
-
-        for (let x = 0; x < canvas.width; x++) {
-          const y = this.y + Math.sin(x * this.frequency + this.phase + time * this.speed) * this.amplitude;
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-      }
-    }
-
-    function init() {
-      for (let i = 0; i < 15; i++) waves.push(new Wave());
-      animate();
-    }
-
-    function animate() {
-      ctx.fillStyle = 'rgba(5, 5, 10, 0.1)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      const time = Date.now() * 0.001;
-      waves.forEach(w => w.draw(time));
-      requestAnimationFrame(animate);
-    }
-    `,
-
-    'physics': `
-    const bodies = [];
-    const G = 0.5;
-
-    class Body {
-      constructor() {
-        this.x = random(200, canvas.width - 200);
-        this.y = random(200, canvas.height - 200);
-        this.vx = random(-0.5, 0.5);
-        this.vy = random(-0.5, 0.5);
-        this.mass = random(10, 50);
-        this.color = randomChoice(colors);
-        this.trail = [];
-      }
-
-      update() {
-        for (let other of bodies) {
-          if (other === this) continue;
-          const dx = other.x - this.x, dy = other.y - this.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist > 5) {
-            const force = G * this.mass * other.mass / (dist * dist);
-            this.vx += (dx / dist) * force / this.mass;
-            this.vy += (dy / dist) * force / this.mass;
-          }
-        }
-        this.x += this.vx;
-        this.y += this.vy;
-        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
-        this.trail.push({ x: this.x, y: this.y });
-        if (this.trail.length > 50) this.trail.shift();
-      }
-
-      draw() {
-        ctx.beginPath();
-        ctx.strokeStyle = this.color;
-        ctx.globalAlpha = 0.3;
-        ctx.lineWidth = 2;
-        for (let i = 0; i < this.trail.length; i++) {
-          const p = this.trail[i];
-          if (i === 0) ctx.moveTo(p.x, p.y);
-          else ctx.lineTo(p.x, p.y);
-        }
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.fillStyle = this.color;
-        ctx.globalAlpha = 1;
-        ctx.arc(this.x, this.y, this.mass / 5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    function init() {
-      for (let i = 0; i < 20; i++) bodies.push(new Body());
-      animate();
-    }
-
-    function animate() {
-      ctx.fillStyle = 'rgba(5, 5, 10, 0.15)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      bodies.forEach(b => { b.update(); b.draw(); });
-      requestAnimationFrame(animate);
-    }
-    `,
-
-    'perlin': `
-    let grid = [];
-    const size = 20;
-    const cols = Math.ceil(canvas.width / size);
-    const rows = Math.ceil(canvas.height / size);
-
-    // Simple pseudo-random gradient noise
-    const gradients = {};
-    function getGradient(x, y) {
-      const key = \`\${x},\${y}\`;
-      if (gradients[key]) return gradients[key];
-      const angle = Math.random() * Math.PI * 2;
-      return gradients[key] = { x: Math.cos(angle), y: Math.sin(angle) };
-    }
-
-    function dotGridGradient(ix, iy, x, y) {
-      const gradient = getGradient(ix, iy);
-      const dx = x - ix, dy = y - iy;
-      return (dx * gradient.x + dy * gradient.y);
-    }
-
-    function lerp(a, b, w) { return (1.0 - w) * a + w * b; }
-
-    function noise(x, y) {
-      const x0 = Math.floor(x), x1 = x0 + 1;
-      const y0 = Math.floor(y), y1 = y0 + 1;
-      const sx = x - x0, sy = y - y0;
-      const n0 = dotGridGradient(x0, y0, x, y);
-      const n1 = dotGridGradient(x1, y0, x, y);
-      const ix0 = lerp(n0, n1, sx);
-      const n2 = dotGridGradient(x0, y1, x, y);
-      const n3 = dotGridGradient(x1, y1, x, y);
-      const ix1 = lerp(n2, n3, sx);
-      return lerp(ix0, ix1, sy);
-    }
-
-    function init() {
-      animate();
-    }
-
-    let z = 0;
-    function animate() {
-      ctx.fillStyle = 'rgba(5, 5, 10, 0.2)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      for (let i = 0; i < 50; i++) {
-        const x = Math.random() * canvas.width;
-        const y = Math.random() * canvas.height;
-        const n = noise(x * 0.005, y * 0.005 + z) * 10;
-        const color = colors[Math.floor(Math.abs(n * colors.length)) % colors.length];
-        
-        ctx.beginPath();
-        ctx.strokeStyle = color;
-        ctx.globalAlpha = 0.5;
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + Math.cos(n * Math.PI) * 50, y + Math.sin(n * Math.PI) * 50);
-        ctx.stroke();
-      }
-      z += 0.005;
-      requestAnimationFrame(animate);
-    }
-    `,
-
-    'cellular': `
-    let grid = [];
-    const size = 10;
-    const cols = Math.floor(canvas.width / size);
-    const rows = Math.floor(canvas.height / size);
-
-    function init() {
-      for (let i = 0; i < cols; i++) {
-        grid[i] = [];
-        for (let j = 0; j < rows; j++) {
-          grid[i][j] = Math.random() > 0.8 ? 1 : 0;
-        }
-      }
-      animate();
-    }
-
-    function animate() {
-      const next = [];
-      for (let i = 0; i < cols; i++) {
-        next[i] = [];
-        for (let j = 0; j < rows; j++) {
-          let neighbors = 0;
-          for (let x = -1; x <= 1; x++) {
-            for (let y = -1; y <= 1; y++) {
-              if (x === 0 && y === 0) continue;
-              const ni = (i + x + cols) % cols;
-              const nj = (j + y + rows) % rows;
-              neighbors += grid[ni][nj];
-            }
-          }
-
-          if (grid[i][j] === 1 && (neighbors < 2 || neighbors > 3)) next[i][j] = 0;
-          else if (grid[i][j] === 0 && neighbors === 3) next[i][j] = 1;
-          else next[i][j] = grid[i][j];
-
-          if (next[i][j] === 1) {
-            ctx.fillStyle = colors[Math.floor(i / cols * colors.length)];
-            ctx.fillRect(i * size, j * size, size - 1, size - 1);
-          }
-        }
-      }
-      grid = next;
-      ctx.fillStyle = 'rgba(5, 5, 10, 0.1)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      setTimeout(() => requestAnimationFrame(animate), 100);
-    }
-    `,
-
-    'abstract': `
-    const elements = [];
-
-    class Element {
+    class StreamParticle {
       constructor() {
         this.reset();
       }
-
       reset() {
-        this.x = random(0, canvas.width);
-        this.y = random(0, canvas.height);
-        this.size = random(10, 80);
-        this.type = randomChoice(['circle', 'rect', 'line']);
+        this.x = random(0, width);
+        this.y = random(0, height);
+        this.prevX = this.x;
+        this.prevY = this.y;
+        this.speed = random(1.5, 3.5);
         this.color = randomChoice(colors);
-        this.speedX = random(-0.3, 0.3);
-        this.speedY = random(-0.3, 0.3);
-        this.rotation = random(0, Math.PI * 2);
-        this.rotSpeed = random(-0.02, 0.02);
+        this.life = random(60, 200);
       }
-
       update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-        this.rotation += this.rotSpeed;
-        if (this.x < -100 || this.x > canvas.width + 100 ||
-            this.y < -100 || this.y > canvas.height + 100) this.reset();
-      }
-
-      draw() {
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
-        ctx.fillStyle = this.color;
-        ctx.globalAlpha = 0.6;
-        if (this.type === 'circle') {
-          ctx.beginPath();
-          ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
-          ctx.fill();
-        } else if (this.type === 'rect') {
-          ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
-        } else if (this.type === 'line') {
-          ctx.strokeStyle = this.color;
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.moveTo(-this.size / 2, 0);
-          ctx.lineTo(this.size / 2, 0);
-          ctx.stroke();
+        this.prevX = this.x;
+        this.prevY = this.y;
+        const angle = Math.sin(this.y * 0.005 + t) * Math.PI * 2 + Math.cos(this.x * 0.005 - t) * Math.PI;
+        this.x += Math.cos(angle) * this.speed;
+        this.y += Math.sin(angle) * this.speed;
+        this.life--;
+        if (this.life <= 0 || this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
+          this.reset();
         }
-        ctx.restore();
+      }
+      draw() {
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(this.prevX, this.prevY);
+        ctx.lineTo(this.x, this.y);
+        ctx.stroke();
       }
     }
 
     function init() {
-      for (let i = 0; i < 150; i++) elements.push(new Element());
+      ctx.fillStyle = '#07070d';
+      ctx.fillRect(0, 0, width, height);
+      for (let i = 0; i < numParticles; i++) particles.push(new StreamParticle());
       animate();
     }
 
     function animate() {
-      ctx.fillStyle = 'rgba(5, 5, 10, 0.1)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      elements.forEach(e => { e.update(); e.draw(); });
+      ctx.fillStyle = 'rgba(7, 7, 13, 0.03)';
+      ctx.fillRect(0, 0, width, height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      t += 0.004;
+      requestAnimationFrame(animate);
+    }
+    `,
+
+    // 3. Hyperbolic Kaleidoscope Sacred Geometry
+    'kaleidoscope': `
+    let t = 0;
+    const folds = Math.floor(random(6, 12));
+
+    function init() {
+      animate();
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(5, 5, 8, 0.08)';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.save();
+      ctx.translate(width / 2, height / 2);
+
+      const angleStep = (Math.PI * 2) / folds;
+      for (let fold = 0; fold < folds; fold++) {
+        ctx.save();
+        ctx.rotate(fold * angleStep + t * 0.01);
+        if (fold % 2 === 1) ctx.scale(1, -1);
+
+        for (let r = 50; r < 400; r += 40) {
+          const wave = Math.sin(r * 0.03 + t) * 35;
+          const color = colors[Math.floor(r * 0.1) % colors.length];
+
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(r, wave, 20 + Math.cos(t + r) * 10, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = color;
+          ctx.globalAlpha = 0.5;
+          ctx.fillRect(r + wave, wave, 6, 6);
+        }
+        ctx.restore();
+      }
+      ctx.restore();
+
+      t += 0.02;
+      requestAnimationFrame(animate);
+    }
+    `,
+
+    // 4. Phyllotaxis Spiral Nebula
+    'spiral': `
+    let n = 0;
+    const c = 7;
+    const maxPoints = 2500;
+    let t = 0;
+
+    function init() {
+      ctx.fillStyle = '#040407';
+      ctx.fillRect(0, 0, width, height);
+      animate();
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(4, 4, 7, 0.02)';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.save();
+      ctx.translate(width / 2, height / 2);
+      ctx.rotate(t * 0.05);
+
+      const goldenAngle = 137.5 * (Math.PI / 180);
+      for (let i = 0; i < 60; i++) {
+        const idx = (n + i) % maxPoints;
+        const a = idx * goldenAngle + t;
+        const r = c * Math.sqrt(idx) + Math.sin(idx * 0.1 + t) * 10;
+        const x = r * Math.cos(a);
+        const y = r * Math.sin(a);
+
+        const color = colors[idx % colors.length];
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        const size = (1 - (r / (width * 0.5))) * 6 + 1;
+        ctx.arc(x, y, Math.max(1, size), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      n = (n + 60) % maxPoints;
+      t += 0.015;
+      requestAnimationFrame(animate);
+    }
+    `,
+
+    // 5. Gravitational Singularity Vortex
+    'vortex': `
+    const count = 400;
+    const bodies = [];
+    let angle = 0;
+
+    class Body {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.dist = random(40, width * 0.45);
+        this.angle = random(0, Math.PI * 2);
+        this.speed = (width * 0.15) / (this.dist + 20);
+        this.size = random(1.5, 4.5);
+        this.color = randomChoice(colors);
+      }
+      update() {
+        this.angle += this.speed * 0.03;
+        this.dist -= 0.15;
+        if (this.dist < 20) this.reset();
+      }
+      draw() {
+        const x = width / 2 + Math.cos(this.angle) * this.dist;
+        const y = height / 2 + Math.sin(this.angle) * this.dist;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(x, y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function init() {
+      ctx.fillStyle = '#06060c';
+      ctx.fillRect(0, 0, width, height);
+      for (let i = 0; i < count; i++) bodies.push(new Body());
+      animate();
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(6, 6, 12, 0.06)';
+      ctx.fillRect(0, 0, width, height);
+
+      bodies.forEach(b => { b.update(); b.draw(); });
+
+      // Core singularity glow
+      const grad = ctx.createRadialGradient(width/2, height/2, 5, width/2, height/2, 90);
+      grad.addColorStop(0, colors[0]);
+      grad.addColorStop(0.5, colors[1] || '#ffffff');
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(width/2, height/2, 90, 0, Math.PI * 2);
+      ctx.fill();
+
+      requestAnimationFrame(animate);
+    }
+    `,
+
+    // 6. Cybernetic Glitch Lattice
+    'glitch': `
+    let t = 0;
+
+    function init() {
+      animate();
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(4, 4, 8, 0.08)';
+      ctx.fillRect(0, 0, width, height);
+
+      const gridSize = 40;
+      for (let x = 0; x < width; x += gridSize) {
+        for (let y = 0; y < height; y += gridSize) {
+          const noiseVal = Math.sin(x * 0.02 + t) * Math.cos(y * 0.02 - t);
+          if (noiseVal > 0.4) {
+            const color = colors[Math.floor(Math.abs(noiseVal * 10)) % colors.length];
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
+          } else if (noiseVal < -0.4 && Math.random() > 0.7) {
+            ctx.fillStyle = randomChoice(colors);
+            ctx.fillRect(x, y + gridSize / 2, gridSize, 3);
+          }
+        }
+      }
+
+      // Digital slice dislocation
+      if (Math.random() > 0.8) {
+        const sliceY = random(0, height - 60);
+        const sliceH = random(10, 50);
+        const shiftX = random(-30, 30);
+        ctx.drawImage(canvas, 0, sliceY, width, sliceH, shiftX, sliceY, width, sliceH);
+      }
+
+      t += 0.03;
+      requestAnimationFrame(animate);
+    }
+    `,
+
+    // 7. Morphing Julia/Lyapunov Complex Fractal
+    'fractal': `
+    let frame = 0;
+
+    function init() {
+      animate();
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(5, 5, 8, 0.08)';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.save();
+      ctx.translate(width / 2, height / 2);
+
+      const branches = 6;
+      const angle = (Math.PI * 2) / branches;
+
+      function drawBranch(len, depth, maxDepth) {
+        if (depth > maxDepth) return;
+        const color = colors[depth % colors.length];
+        ctx.strokeStyle = color;
+        ctx.lineWidth = Math.max(1, (maxDepth - depth) * 1.5);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -len);
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(0, -len);
+
+        const sway = Math.sin(frame * 0.02 + depth) * 0.4;
+        ctx.save();
+        ctx.rotate(0.5 + sway);
+        drawBranch(len * 0.72, depth + 1, maxDepth);
+        ctx.restore();
+
+        ctx.save();
+        ctx.rotate(-0.5 + sway);
+        drawBranch(len * 0.72, depth + 1, maxDepth);
+        ctx.restore();
+
+        ctx.restore();
+      }
+
+      for (let i = 0; i < branches; i++) {
+        ctx.save();
+        ctx.rotate(i * angle + frame * 0.005);
+        drawBranch(120, 0, 6);
+        ctx.restore();
+      }
+
+      ctx.restore();
+      frame++;
+      requestAnimationFrame(animate);
+    }
+    `,
+
+    // 8. Dynamic Voronoi Tessellation & Polygonal Shards
+    'abstract': `
+    const nodes = [];
+    const numNodes = 40;
+    let t = 0;
+
+    class CrystalNode {
+      constructor() {
+        this.x = random(50, width - 50);
+        this.y = random(50, height - 50);
+        this.vx = random(-1, 1);
+        this.vy = random(-1, 1);
+        this.color = randomChoice(colors);
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 50 || this.x > width - 50) this.vx *= -1;
+        if (this.y < 50 || this.y > height - 50) this.vy *= -1;
+      }
+    }
+
+    function init() {
+      for (let i = 0; i < numNodes; i++) nodes.push(new CrystalNode());
+      animate();
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(6, 6, 10, 0.1)';
+      ctx.fillRect(0, 0, width, height);
+
+      nodes.forEach(n => n.update());
+
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 180) {
+            ctx.strokeStyle = nodes[i].color;
+            ctx.globalAlpha = 1 - (dist / 180);
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      ctx.globalAlpha = 1;
+      nodes.forEach(n => {
+        ctx.fillStyle = n.color;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      t += 0.01;
       requestAnimationFrame(animate);
     }
     `
   };
 
   const techLower = technique.toLowerCase();
-  const key = Object.keys(code).find(k => techLower.includes(k)) || 
-              (techLower.includes('noise') ? 'perlin' : 
-               techLower.includes('automata') ? 'cellular' : 
-               techLower.includes('geometry') ? 'abstract' : 'abstract');
-  return code[key];
+  let key = Object.keys(code).find(k => techLower.includes(k));
+
+  if (!key) {
+    if (techLower.includes('attractor') || techLower.includes('clifford')) key = 'attractor';
+    else if (techLower.includes('kaleidoscope') || techLower.includes('hyperbolic') || techLower.includes('sacred') || techLower.includes('mandala')) key = 'kaleidoscope';
+    else if (techLower.includes('spiral') || techLower.includes('phyllotaxis')) key = 'spiral';
+    else if (techLower.includes('flow') || techLower.includes('noise') || techLower.includes('perlin') || techLower.includes('quantum')) key = 'flow';
+    else if (techLower.includes('vortex') || techLower.includes('singularity') || techLower.includes('particle')) key = 'vortex';
+    else if (techLower.includes('fractal')) key = 'fractal';
+    else if (techLower.includes('glitch') || techLower.includes('lattice')) key = 'glitch';
+    else {
+      // Pick randomly so unknown techniques get varied, dynamic generative art
+      const keys = Object.keys(code);
+      key = keys[Math.floor(Math.random() * keys.length)];
+    }
+  }
+
+  return code[key] || code['attractor'];
 }
 
 function generateTimestamp() {
@@ -693,7 +657,14 @@ async function generateArt() {
   
   if (!fs.existsSync(CONCEPT_FILE)) {
     console.log('⚠️  No concept file found, using default creative fallback...');
-    const fallbackTechniques = ['Particle Dynamics', 'Perlin Noise Landscapes', 'Generative Geometry', 'Cellular Automata', 'Glitch Aesthetics', 'Wave Interference', 'Chaos Theory'];
+    const fallbackTechniques = [
+      'Clifford Strange Attractor',
+      'Hyperbolic Kaleidoscope',
+      'Quantum Flow Field',
+      'Phyllotaxis Spiral Matrix',
+      'Particle Singularity Vortex',
+      'Cybernetic Glitch Lattice'
+    ];
     const fallbackColors = [
       ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff'],
       ['#00d2d3', '#ff9f43', '#ee5a24', '#0abde3', '#10ac84'],
@@ -708,13 +679,15 @@ async function generateArt() {
       colors: pick(fallbackColors),
       interaction: 'Animated',
       tone: 'Mysterious and alive',
-      generated: 'fallback'
+      generated: 'fallback',
+      customCode: null
     };
   } else {
     concept = JSON.parse(fs.readFileSync(CONCEPT_FILE, 'utf8'));
     console.log('🎨 Generating art for:', concept.title);
     console.log('   Technique:', concept.technique);
     console.log('   Colors:', concept.colors?.join(', '));
+    console.log('   Has Custom AI Code:', !!concept.customCode);
   }
 
   const result = generateCanvasArt(concept);

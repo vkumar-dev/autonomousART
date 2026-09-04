@@ -43,7 +43,7 @@ jobs:
       HF_HUB_DISABLE_PROGRESS_BARS: "1"
       MODEL_MIN_PARAMS: "3B"
       MODEL_MAX_PARAMS: "7B"
-      LLAMA_MAX_TOKENS: "2048"
+      LLAMA_MAX_TOKENS: "3072"
 
     steps:
       - name: Checkout repository
