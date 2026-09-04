@@ -32,10 +32,18 @@ concurrency:
 jobs:
   generate-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
+    env:
+      HF_HOME: ${{ github.workspace }}/.hf
+      LLAMA_MODEL_DIR: ${{ github.workspace }}/.models
+      HF_HUB_DISABLE_PROGRESS_BARS: "1"
+      MODEL_MIN_PARAMS: "3B"
+      MODEL_MAX_PARAMS: "7B"
+      LLAMA_MAX_TOKENS: "2048"
 
     steps:
       - name: Checkout repository
@@ -43,56 +51,57 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install dependencies
+      - name: Install Hugging Face CLI
+        run: |
+          curl -LsSf https://hf.co/cli/install.sh | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/hf" --version
+
+      - name: Install Python inference dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install huggingface_hub
+          pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu || pip install llama-cpp-python
+
+      - name: Install Node.js dependencies
         run: npm install
 
-      - name: Install Ollama
+      - name: Discover public non-gated GGUF model
+        id: model
         run: |
-          echo "📦 Installing Ollama..."
-          curl -fsSL https://ollama.ai/install.sh | sh
-          echo "✅ Ollama installed"
+          echo "Selecting latest suitable open non-gated llama.cpp model…"
+          python scripts/model_resolver.py | tee resolver-output.json
+          MODEL_ID=$(python -c "import json; print(json.load(open('selected-model.json'))['model'])")
+          QUANT=$(python -c "import json; print(json.load(open('selected-model.json'))['quantization'])")
+          echo "model=$MODEL_ID" >> "$GITHUB_OUTPUT"
+          echo "quant=$QUANT" >> "$GITHUB_OUTPUT"
+          echo "Selected $MODEL_ID ($QUANT)"
 
-      - name: Start Ollama service
-        run: |
-          echo "🚀 Starting Ollama service..."
-          nohup ollama serve > /tmp/ollama.log 2>&1 &
-          sleep 5
-          for i in {1..30}; do
-            if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
-              echo "✅ Ollama ready"
-              break
-            fi
-            sleep 2
-          done
+      - name: Cache GGUF weights
+        uses: actions/cache@v4
+        with:
+          path: |
+            .models
+            .hf
+          key: ${{ runner.os }}-gguf-${{ hashFiles('selected-model.json') }}
+          restore-keys: |
+            ${{ runner.os }}-gguf-
 
-      - name: Get model configuration
-        id: model-config
+      - name: Generate art concept with local HF GGUF inference
+        timeout-minutes: 30
         run: |
-          PRIMARY_MODEL=$(node -e "console.log(JSON.parse(require('fs').readFileSync('models.config.json')).primaryModel)")
-          echo "PRIMARY_MODEL=$PRIMARY_MODEL" >> $GITHUB_ENV
-          echo "primary_model=$PRIMARY_MODEL" >> $GITHUB_OUTPUT
-
-      - name: Pull text model for concept generation
-        timeout-minutes: 15
-        run: |
-          echo "📥 Pulling ${{ env.PRIMARY_MODEL }} for concept generation..."
-          ollama pull ${{ env.PRIMARY_MODEL }}
-          ollama list
-
-      - name: Generate art concept with Ollama
-        timeout-minutes: 10
-        continue-on-error: true
-        env:
-          OLLAMA_URL: http://localhost:11434
-          OLLAMA_MODEL: ${{ env.PRIMARY_MODEL }}
-        run: |
-          echo "🎨 Generating art concept with Ollama using ${{ env.PRIMARY_MODEL }}..."
-          node scripts/ollama-concept-generator.js || echo "⚠️ Concept generation failed, using fallback"
+          echo "🎨 Generating art concept with HF GGUF model..."
+          node scripts/concept-generator.js
 
       - name: Generate artwork (Canvas-based)
         run: |
@@ -112,7 +121,6 @@ jobs:
       - name: Commit artwork
         run: |
           git add artworks/ artworks-list.json concept-history.json
-
           if git diff --staged --quiet; then
             echo "ℹ️  No changes to commit"
             exit 0
@@ -123,7 +131,7 @@ jobs:
             PROMPT_SUMMARY="autonomous generation"
           fi
 
-          git commit -m "🎨 [AUTO] New artwork: ${PROMPT_SUMMARY:0:50}..."
+          git commit -m "🎨 [AUTO] New artwork: ${PROMPT_SUMMARY:0:50}... ($(date -u +%Y-%m-%d))"
 
           if git push origin master; then
             echo "✅ Pushed successfully"
@@ -148,5 +156,7 @@ jobs:
         if: always()
         run: |
           echo "📊 Workflow Complete"
+          echo "   Model: ${{ steps.model.outputs.model }}"
+          echo "   Quant: ${{ steps.model.outputs.quant }}"
           echo "   Style: ${{ github.event.inputs.style || 'abstract' }}"
           echo "   Deployed: ${{ steps.deployment.outputs.page_url }}"

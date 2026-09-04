@@ -2,7 +2,12 @@ node_modules/
 .env
 .env.local
 selected-concept.json
+selected-model.json
+resolver-output.json
 package-lock.json
 .DS_Store
 *.log
-.qwen/
+.models/
+.hf/
+__pycache__/
+*.pyc

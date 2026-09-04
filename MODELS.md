@@ -1,26 +1,21 @@
-# Model Management & Fallback Strategy
+# Model Management & Inference Architecture
 
-## Dynamic Model Selection
-The system uses `models.config.json` to define the primary model. If the primary model is unavailable (e.g., during a rollout or infrastructure failure), the system automatically falls back through previous versions stored in git history.
+autonomousART adopts the **autonomousMATH** inference architecture, removing Ollama and third-party API dependencies entirely.
 
-## Git-Backed Fallback Queue
-Instead of maintaining a manual list of fallback models, we use the repository's own history:
-1. **Primary Model**: Defined in `models.config.json`.
-2. **Git Queue**: If primary fails, `GitModelQueue` scans the last 20-50 commits to find previously working models.
-3. **Environment Fallback**: Ultimate fallback to `OLLAMA_MODEL` environment variable.
+## Zero Ollama / Pure Hugging Face GGUF
 
-## Automatic Model Updates
-`scripts/model-updater.js` runs via GitHub Actions (`model-updater.yml`) to:
-- Discover new or improved models.
-- Perform A/B testing on candidate models.
-- Update `models.config.json` when a better model is verified.
-- Track performance in `model-update-log.json`.
+1. **Automated Discovery (`scripts/model_resolver.py`)**:
+   - Queries the Hugging Face Hub using the `hf` CLI for public, non-gated models.
+   - Requires no Hugging Face token or authentication.
+   - Filters models suitable for runner memory and CPU speed (3B–7B parameter range, file size ≤ 4.8 GB, Q4/Q5 quantization).
+   - Ranks models with a composite scoring function across task keywords, popularity, packager reputation, recency, and size.
+   - Writes `selected-model.json`.
 
-## Configuration Schema
-```json
-{
-  "primaryModel": "qwen2.5-coder:3b",
-  "fallbackModel": "llama3.2:3b",
-  "fallbackStrategy": "git_history"
-}
-```
+2. **Local GGUF Inference (`scripts/hf_inference.py`)**:
+   - Reads `selected-model.json` and downloads the GGUF weights via `huggingface_hub.hf_hub_download` (tokenless).
+   - Executes generation locally via `llama-cpp-python` (with `llama-cli` fallback).
+   - Runs purely inside standard GitHub Actions runners with no external server or API keys required.
+
+3. **Concept Generation (`scripts/concept-generator.js`)**:
+   - Prompts the selected GGUF model for surreal, experimental art concepts with algorithmic diversity.
+   - Emits structured JSON to `selected-concept.json` for consumption by `scripts/art-generator.js`.

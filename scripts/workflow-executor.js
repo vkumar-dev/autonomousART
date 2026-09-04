@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const OllamaInference = require('./ollama-inference');
+const HfInference = require('./hf-inference');
 const { PromptManager } = require('./prompt-manager');
 const { generateCanvasArt, generateHTML } = require('./art-generator');
 
@@ -74,10 +74,9 @@ class WorkflowExecutor {
       // Execute inference
       if (verbose) console.log('🧠 Running inference...\n');
 
-      const inference = new OllamaInference();
-      const result = await inference.generate(rendered, {
-        ...params,
-        verbose
+      const inference = new HfInference();
+      const result = inference.generate(rendered, {
+        ...params
       });
 
       if (!result.success) {
