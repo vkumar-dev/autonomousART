@@ -38,8 +38,6 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     env:
-      HF_HOME: ${{ github.workspace }}/.hf
-      LLAMA_MODEL_DIR: ${{ github.workspace }}/.models
       HF_HUB_DISABLE_PROGRESS_BARS: "1"
       MODEL_MIN_PARAMS: "3B"
       MODEL_MAX_PARAMS: "7B"
@@ -90,15 +88,22 @@ jobs:
       - name: Cache GGUF weights
         uses: actions/cache@v4
         with:
+          # Keep weights + HF cache OUT of $GITHUB_WORKSPACE: the Pages artifact
+          # upload (path: '.') ignores .gitignore, and a ~2GB GGUF pushed the
+          # upload past GitHub's 1GB artifact limit (deployment can fail).
           path: |
-            .models
-            .hf
+            ${{ runner.temp }}/models
+            ${{ runner.temp }}/hf
           key: ${{ runner.os }}-gguf-${{ hashFiles('selected-model.json') }}
           restore-keys: |
             ${{ runner.os }}-gguf-
 
       - name: Generate art concept with local HF GGUF inference
         timeout-minutes: 30
+        env:
+          # Outside the workspace so they can never be part of the Pages artifact.
+          HF_HOME: ${{ runner.temp }}/hf
+          LLAMA_MODEL_DIR: ${{ runner.temp }}/models
         run: |
           echo "🎨 Generating art concept with HF GGUF model..."
           node scripts/concept-generator.js
@@ -139,6 +144,15 @@ jobs:
             git pull --rebase origin master
             git push origin master
           fi
+
+      - name: Prune non-site files before Pages upload
+        run: |
+          # upload-pages-artifact uploads the whole workspace and does not honor
+          # .gitignore, so strip anything that is not part of the static site.
+          rm -rf node_modules .env .env.local
+          find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+          find . -name '*.log' -delete 2>/dev/null || true
+          echo "Workspace size before upload: $(du -sh . | cut -f1)"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
