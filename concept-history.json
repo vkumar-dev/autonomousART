@@ -2584,7 +2584,14 @@
       "date": "2026-06-20T14:38:10.394Z",
       "technique": "Perlin Noise Landscapes",
       "generated": "ollama"
+    },
+    {
+      "title": "Whispers in Shadows",
+      "date": "2026-09-04T17:38:18.160Z",
+      "technique": "Abstract Expressionism",
+      "generated": "hf-gguf",
+      "model": "Qwen/Qwen2.5-3B-Instruct-GGUF"
     }
   ],
-  "lastUpdated": "2026-06-20T14:38:10.394Z"
+  "lastUpdated": "2026-09-04T17:38:18.160Z"
 }
