@@ -27,6 +27,9 @@ MIN_PARAMS = os.environ.get("MODEL_MIN_PARAMS", "3B")
 MAX_PARAMS = os.environ.get("MODEL_MAX_PARAMS", "7B")
 MAX_FILE_BYTES = int(os.environ.get("MODEL_MAX_BYTES", str(4_800_000_000)))
 CANDIDATE_LIMIT = int(os.environ.get("MODEL_CANDIDATE_LIMIT", "24"))
+# Models older than this are excluded so ancient mega-popular repos (e.g. the
+# 2024 Qwen2.5 GGUF line) cannot crowd out current-generation models.
+MAX_AGE_DAYS = int(os.environ.get("MODEL_MAX_AGE_DAYS", "180"))
 
 SEARCHES = ("instruct", "reasoning", "creative", "coder")
 TASK_KEYWORDS = (
@@ -66,6 +69,11 @@ KNOWN_PACKAGERS = (
     "thebloke",
     "ggml-org",
 )
+# Reputable quantizers / orgs of mainstream current-gen base models. Repos
+# created here are far more likely to be "the latest Qwen/Llama/Gemma" than a
+# one-off community fine-tune of the same vintage.
+PACKAGER_TIER_1 = ("bartowski", "unsloth", "hugging-quants", "lmstudio-community", "ggml-org")
+PACKAGER_TIER_2 = ("qwen", "microsoft", "google", "meta-llama", "huggingfacetb", "thebloke")
 QUANT_PREF = [
     "Q4_K_M",
     "Q4_K_S",
@@ -242,12 +250,38 @@ def task_score(model: dict[str, Any]) -> float:
     return min(1.0, hits / 3.0)
 
 
+def created_stamp(model: dict[str, Any]) -> datetime | None:
+    return parse_dt(model.get("created_at") or model.get("last_modified"))
+
+
+def filter_recent(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    now = datetime.now(timezone.utc)
+
+    def age_of(m: dict[str, Any]) -> float | None:
+        stamp = created_stamp(m)
+        if stamp is None:
+            return None
+        return max(0.0, (now - stamp).total_seconds() / 86400.0)
+
+    recent = [m for m in candidates if (age_of(m) or 0) <= MAX_AGE_DAYS]
+    if len(recent) >= 4:
+        log(f"Recency window: {len(recent)}/{len(candidates)} repos within {MAX_AGE_DAYS} days")
+        return recent
+
+    # Very few recent candidates: relax once so discovery does not stall.
+    relaxed = [m for m in candidates if (age_of(m) if age_of(m) is not None else 730) <= 730]
+    if len(relaxed) >= len(recent):
+        log(f"Too few recent repos ({len(recent)}); relaxed recency window to 730 days -> {len(relaxed)}")
+        return relaxed
+    return candidates
+
+
 def recency_score(model: dict[str, Any]) -> float:
-    stamp = parse_dt(model.get("created_at") or model.get("last_modified"))
+    stamp = created_stamp(model)
     if stamp is None:
-        return 0.2
+        return 0.0
     age_days = max(0.0, (datetime.now(timezone.utc) - stamp).total_seconds() / 86400.0)
-    return math.exp(-age_days / 180.0)
+    return math.exp(-age_days / 60.0)
 
 
 def popularity_score(model: dict[str, Any]) -> float:
@@ -263,7 +297,15 @@ def popularity_score(model: dict[str, Any]) -> float:
 def packager_bonus(model: dict[str, Any]) -> float:
     ident = str(model.get("id") or "").lower()
     org = ident.split("/", 1)[0]
-    return 1.0 if org in KNOWN_PACKAGERS else 0.0
+    if org in PACKAGER_TIER_1:
+        return 1.0
+    if org in PACKAGER_TIER_2:
+        return 0.85
+    if org == "mradermacher":
+        return 0.5
+    if org in KNOWN_PACKAGERS:
+        return 0.7
+    return 0.0
 
 
 def size_score(model: dict[str, Any]) -> float:
@@ -284,12 +326,13 @@ def size_score(model: dict[str, Any]) -> float:
 
 
 def score_model(model: dict[str, Any]) -> float:
+    quality = 0.6 * packager_bonus(model) + 0.4 * popularity_score(model)
     return (
-        0.30 * task_score(model)
-        + 0.20 * (0.6 * packager_bonus(model) + 0.4 * popularity_score(model))
-        + 0.15 * popularity_score(model)
-        + 0.15 * recency_score(model)
-        + 0.10 * size_score(model)
+        0.20 * task_score(model)
+        + 0.28 * quality
+        + 0.12 * popularity_score(model)
+        + 0.16 * recency_score(model)
+        + 0.14 * size_score(model)
         + 0.10 * (1.0 if "instruct" in model_blob(model) else 0.4)
     )
 
@@ -347,8 +390,18 @@ def resolve() -> dict[str, Any]:
     candidates = discover_candidates()
     if not candidates:
         raise RuntimeError("No public non-gated llama.cpp models matched the filters.")
+    candidates = filter_recent(candidates)
+    if not candidates:
+        raise RuntimeError("No public non-gated llama.cpp models matched the filters.")
 
-    scored = sorted(candidates, key=score_model, reverse=True)
+    # Rank by score, but break near-ties in favor of reputable quantizers and
+    # popular repos so a fresh community fine-tune cannot edge out a mainstream
+    # current-gen GGUF on raw recency alone.
+    scored = sorted(
+        candidates,
+        key=lambda m: (round(score_model(m), 2), packager_bonus(m), float(m.get("downloads") or 0)),
+        reverse=True,
+    )
     log(f"Ranked {len(scored)} candidate repos. Probing GGUF files…")
 
     errors: list[str] = []
