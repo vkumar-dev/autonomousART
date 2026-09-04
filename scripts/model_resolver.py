@@ -2,8 +2,9 @@
 """Discover a public, non-gated, llama.cpp-compatible GGUF model.
 
 Follows the autonomousMATH model resolver architecture: no Hugging Face token,
-no Ollama, no hardcoded model id. Hard filters first, then a weighted score
-over task fit, recency, downloads, and CPU-friendly size.
+no Ollama, no hardcoded model id. Hard filters first, then an "always latest" policy: the newest usable
+chat/instruct GGUF wins, with step-down credibility gates so a daily flood
+of zero-download uploads cannot break the pipeline.
 Writes selected-model.json.
 """
 
@@ -27,9 +28,11 @@ MIN_PARAMS = os.environ.get("MODEL_MIN_PARAMS", "3B")
 MAX_PARAMS = os.environ.get("MODEL_MAX_PARAMS", "7B")
 MAX_FILE_BYTES = int(os.environ.get("MODEL_MAX_BYTES", str(4_800_000_000)))
 CANDIDATE_LIMIT = int(os.environ.get("MODEL_CANDIDATE_LIMIT", "24"))
-# Models older than this are excluded so ancient mega-popular repos (e.g. the
-# 2024 Qwen2.5 GGUF line) cannot crowd out current-generation models.
-MAX_AGE_DAYS = int(os.environ.get("MODEL_MAX_AGE_DAYS", "180"))
+# "Always the latest" policy knobs. Hugging Face receives thousands of new
+# (often zero-download) GGUF uploads per day, so we take the NEWEST model that
+# still clears a minimal credibility gate; the gate relaxes in stages so
+# discovery never stalls on a day full of throwaway uploads.
+MODEL_MIN_DOWNLOADS = int(os.environ.get("MODEL_MIN_DOWNLOADS", "25"))
 
 SEARCHES = ("instruct", "reasoning", "creative", "coder")
 TASK_KEYWORDS = (
@@ -55,7 +58,24 @@ SKIP_NAME_BITS = (
     "classifier",
     "tts",
     "asr",
+    "vision",
+    "vlm",
+    "multimodal",
+    "image",
+    "ocr",
+    "audio",
 )
+# llama.cpp text generation only - multimodal/speech/image models are unusable.
+SKIP_PIPELINES = {
+    "image-text-to-text",
+    "text-to-image",
+    "text-to-speech",
+    "automatic-speech-recognition",
+    "audio-to-audio",
+    "any-to-any",
+    "image-to-image",
+    "image-to-text",
+}
 KNOWN_PACKAGERS = (
     "bartowski",
     "unsloth",
@@ -161,6 +181,9 @@ def is_skipped_model(model: dict[str, Any]) -> bool:
         return True
     ident = str(model.get("id") or "").lower()
     blob = model_blob(model)
+    pipeline = str(model.get("pipeline_tag") or "").lower()
+    if pipeline in SKIP_PIPELINES:
+        return True
     if any(bit in ident or bit in blob for bit in SKIP_NAME_BITS):
         return True
     return False
@@ -254,25 +277,26 @@ def created_stamp(model: dict[str, Any]) -> datetime | None:
     return parse_dt(model.get("created_at") or model.get("last_modified"))
 
 
-def filter_recent(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    now = datetime.now(timezone.utc)
+def latest_pool(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Newest-first candidate pool with step-down credibility gates.
 
-    def age_of(m: dict[str, Any]) -> float | None:
-        stamp = created_stamp(m)
-        if stamp is None:
-            return None
-        return max(0.0, (now - stamp).total_seconds() / 86400.0)
-
-    recent = [m for m in candidates if (age_of(m) or 0) <= MAX_AGE_DAYS]
-    if len(recent) >= 4:
-        log(f"Recency window: {len(recent)}/{len(candidates)} repos within {MAX_AGE_DAYS} days")
-        return recent
-
-    # Very few recent candidates: relax once so discovery does not stall.
-    relaxed = [m for m in candidates if (age_of(m) if age_of(m) is not None else 730) <= 730]
-    if len(relaxed) >= len(recent):
-        log(f"Too few recent repos ({len(recent)}); relaxed recency window to 730 days -> {len(relaxed)}")
-        return relaxed
+    Pool 1: chat/instruct models from top quantizers or with real traction.
+    Pool 2: any chat/instruct model with a hint of engagement.
+    Pool 3: any chat/instruct model at all.
+    Pool 4: everything else (last resort so discovery never fails).
+    """
+    is_chat = lambda m: task_score(m) > 0.0  # noqa: E731
+    downloads = lambda m: int(m.get("downloads") or 0)  # noqa: E731
+    pools = [
+        [m for m in candidates if is_chat(m) and (downloads(m) >= MODEL_MIN_DOWNLOADS or packager_bonus(m) >= 1.0)],
+        [m for m in candidates if is_chat(m) and (downloads(m) >= 5 or packager_bonus(m) >= 0.5)],
+        [m for m in candidates if is_chat(m)],
+        list(candidates),
+    ]
+    for index, pool in enumerate(pools):
+        if pool:
+            log(f"Latest-model policy: pool {index + 1} has {len(pool)} usable repos")
+            return pool
     return candidates
 
 
@@ -390,16 +414,15 @@ def resolve() -> dict[str, Any]:
     candidates = discover_candidates()
     if not candidates:
         raise RuntimeError("No public non-gated llama.cpp models matched the filters.")
-    candidates = filter_recent(candidates)
+    candidates = latest_pool(candidates)
     if not candidates:
         raise RuntimeError("No public non-gated llama.cpp models matched the filters.")
 
-    # Rank by score, but break near-ties in favor of reputable quantizers and
-    # popular repos so a fresh community fine-tune cannot edge out a mainstream
-    # current-gen GGUF on raw recency alone.
+    # Strictly newest-first. Same-day ties fall back to the quality score so a
+    # torrent of zero-engagement uploads cannot displace a flagship model.
     scored = sorted(
         candidates,
-        key=lambda m: (round(score_model(m), 2), packager_bonus(m), float(m.get("downloads") or 0)),
+        key=lambda m: (created_stamp(m) or datetime.min, score_model(m)),
         reverse=True,
     )
     log(f"Ranked {len(scored)} candidate repos. Probing GGUF files…")
