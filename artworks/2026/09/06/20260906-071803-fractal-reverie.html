@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fractal Reverie - autonomousART</title>
+  <style>
+    :root {
+      --paper: #f2eee6;
+      --ink: #1b1814;
+      --ink-soft: #56504a;
+      --ink-faint: #938c81;
+      --line: rgba(27, 24, 20, 0.14);
+      --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+      --sans: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 44px 26px 90px;
+    }
+    .page { width: 100%; max-width: 780px; }
+    .work { width: 100%; }
+    .plate {
+      position: relative;
+      width: 100%;
+      background: #0f0f0d;
+      line-height: 0;
+      box-shadow: 0 1px 2px rgba(27,24,20,0.04), 0 40px 90px -48px rgba(27,24,20,0.5);
+    }
+    canvas { width: 100%; height: auto; display: block; }
+    .caption { padding-top: 26px; }
+    .kicker {
+      font-size: 10px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(25px, 5vw, 36px);
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      margin-bottom: 16px;
+    }
+    .desc {
+      font-family: var(--serif);
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--ink-soft);
+      max-width: 62ch;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 26px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+    .palette { display: inline-flex; gap: 7px; align-items: center; }
+    .palette i {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      border: 1px solid rgba(27,24,20,0.16);
+    }
+    .back {
+      display: inline-block;
+      margin-top: 40px;
+      font-size: 10.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--ink);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 4px;
+      transition: border-color 0.4s ease;
+    }
+    .back:hover { border-color: var(--ink); }
+
+    /* #stage: frame-only mode used when the piece is embedded (thumbnails, viewing room) */
+    html.stage body { padding: 0; display: block; }
+    html.stage .page {
+      width: 100%;
+      max-width: none;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    html.stage .work { width: min(100vw, 100vh); }
+    html.stage .plate { width: 100%; box-shadow: none; }
+    html.stage .caption,
+    html.stage .back { display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+  <script>
+    if (location.hash === '#stage') document.documentElement.classList.add('stage');
+  </script>
+</head>
+<body>
+  <div class="page">
+    <figure class="work">
+      <div class="plate">
+        <canvas id="artCanvas" width="1024" height="1024"></canvas>
+      </div>
+      <figcaption class="caption">
+        <p class="kicker" id="artAccession">Autonomous Art &middot; Generative</p>
+        <h1>Fractal Reverie</h1>
+        <p class="desc">A mesmerizing dance of neural wave harmonics evolving through sacred geometry and chaotic fluid dynamics.</p>
+        <div class="meta-row">
+          <span>Neural Wave Harmonics</span>
+          <span>Animated</span>
+          <span class="palette"><i style="background:#1c1c1c"></i><i style="background:#5f5f5f"></i><i style="background:#a0a0a0"></i><i style="background:#d0d0d0"></i><i style="background:#f0f0f0"></i></span>
+        </div>
+      </figcaption>
+    </figure>
+    <a class="back" href="../../../../index.html">&larr; Return to collection</a>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('artCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const colors = ["#1c1c1c","#5f5f5f","#a0a0a0","#d0d0d0","#f0f0f0"];
+    const technique = 'neural wave harmonics';
+
+    // Allow AI models querying document.getElementById('canvas') or 'artCanvas' to succeed
+    const _origGetElementById = document.getElementById.bind(document);
+    document.getElementById = function(id) {
+      if (id === 'canvas' || id === 'artCanvas') return canvas;
+      return _origGetElementById(id);
+    };
+
+    function random(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function randomChoice(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    
+    // --- AI-GENERATED CANVAS CODE (watchdog-guarded) ---
+    (function() {
+      // The AI writes arbitrary code, so before trusting its output we probe the
+      // real canvas pixels. If the code throws OR leaves the canvas effectively
+      // blank after a few animation frames, we stop its loop and run the proven
+      // procedural engine instead. This prevents silently-deployed black pages.
+      const nativeRaf = (typeof window !== 'undefined' && window.requestAnimationFrame)
+        ? window.requestAnimationFrame.bind(window)
+        : null;
+
+      const frameQueue = [];
+      let scheduled = false;
+      let phase = 'probing';   // 'probing' -> 'running' (AI kept) | 'fallback'
+      let probeFrames = 0;
+      let frameTime = 0;
+      const PROBE_FRAMES = 12;
+
+      function schedule() {
+        if (scheduled || !nativeRaf) return;
+        scheduled = true;
+        nativeRaf(flush);
+      }
+
+      // Intercept rAF so we can count frames for the probe and, when needed,
+      // fully stop the AI animation before the fallback engine starts.
+      window.requestAnimationFrame = function(cb) {
+        frameQueue.push(cb);
+        schedule();
+        return 0;
+      };
+      window.cancelAnimationFrame = function() {};
+
+      function flush() {
+        scheduled = false;
+        frameTime += 16;
+        const cbs = frameQueue.splice(0, frameQueue.length);
+        for (let i = 0; i < cbs.length; i++) {
+          try { cbs[i](frameTime); } catch (e) { console.error('Animation frame error:', e); }
+        }
+        if (phase === 'probing') {
+          probeFrames++;
+          if (probeFrames >= PROBE_FRAMES) decide();
+        }
+        if (phase === 'probing') {
+          if (!scheduled) schedule();
+        } else if ((phase === 'running' || phase === 'fallback') && frameQueue.length > 0 && !scheduled) {
+          schedule();
+        }
+      }
+
+      function isCanvasBlank() {
+        try {
+          const img = ctx.getImageData(0, 0, width, height);
+          const d = img.data;
+          const step = 32;
+          for (let y = 0; y < height; y += step) {
+            for (let x = 0; x < width; x += step) {
+              const i = (y * width + x) * 4;
+              // Visible = any non-transparent pixel that is not near-black.
+              if (d[i + 3] > 0 && (d[i] + d[i + 1] + d[i + 2]) > 30) return false;
+            }
+          }
+          return true;
+        } catch (e) {
+          return false; // pixels unreadable (rare); assume the code drew something
+        }
+      }
+
+      function runFallback(reason) {
+        console.log('Falling back to procedural engine (' + reason + ')...');
+        phase = 'fallback';
+        frameQueue.length = 0; // halt the AI animation loop
+        ctx.clearRect(0, 0, width, height);
+        // Own scope: declarations can never collide with the AI code's names
+        // (a collision would be a parse-time SyntaxError no try/catch can catch).
+        (function() {
+          
+    const numParticles = 600;
+    const particles = [];
+    let t = 0;
+
+    class StreamParticle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = random(0, width);
+        this.y = random(0, height);
+        this.prevX = this.x;
+        this.prevY = this.y;
+        this.speed = random(1.5, 3.5);
+        this.color = randomChoice(colors);
+        this.life = random(60, 200);
+      }
+      update() {
+        this.prevX = this.x;
+        this.prevY = this.y;
+        const angle = Math.sin(this.y * 0.005 + t) * Math.PI * 2 + Math.cos(this.x * 0.005 - t) * Math.PI;
+        this.x += Math.cos(angle) * this.speed;
+        this.y += Math.sin(angle) * this.speed;
+        this.life--;
+        if (this.life <= 0 || this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
+          this.reset();
+        }
+      }
+      draw() {
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(this.prevX, this.prevY);
+        ctx.lineTo(this.x, this.y);
+        ctx.stroke();
+      }
+    }
+
+    function init() {
+      ctx.fillStyle = '#07070d';
+      ctx.fillRect(0, 0, width, height);
+      for (let i = 0; i < numParticles; i++) particles.push(new StreamParticle());
+      animate();
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(7, 7, 13, 0.03)';
+      ctx.fillRect(0, 0, width, height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      t += 0.004;
+      requestAnimationFrame(animate);
+    }
+    
+          if (typeof init === 'function') {
+            init();
+          }
+        })();
+        if (frameQueue.length > 0 && !scheduled) schedule();
+      }
+
+      function decide() {
+        if (isCanvasBlank()) {
+          runFallback('AI code left the canvas blank');
+        } else {
+          phase = 'running';
+        }
+      }
+
+      let customSucceeded = false;
+      try {
+        // Run the AI code in its own scope so its top-level declarations can
+        // never collide with the watchdog's own identifiers.
+        (function() {
+          const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = 1024;
+canvas.height = 1024;
+
+const colors = ['#1c1c1c', '#5f5f5f', '#a0a0a0', '#d0d0d0', '#f0f0f0'];
+const waveCount = randomChoice([5, 8, 12]);
+const amplitude = random(10, 50);
+const frequency = random(0.01, 0.1);
+const speed = random(0.001, 0.01);
+
+let phase = 0;
+
+function drawWave() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < waveCount; i++) {
+    const color = colors[random(0, 4)];
+    const waveAmplitude = amplitude * (i / waveCount);
+    const waveFrequency = frequency * (i / waveCount);
+    const waveSpeed = speed * (i / waveCount);
+    
+    for (let x = 0; x < canvas.width; x++) {
+      const y = Math.sin(waveFrequency * x + phase) * waveAmplitude + canvas.height / 2;
+      ctx.fillStyle = color;
+      ctx.fillRect(x, Math.floor(y), 1, 1);
+    }
+  }
+  phase += waveSpeed;
+  requestAnimationFrame(drawWave);
+}
+
+drawWave();
+          if (typeof init === 'function') {
+            init();
+          }
+        })();
+        customSucceeded = true;
+      } catch (err) {
+        console.error('Custom AI art execution error:', err);
+      }
+
+      if (!customSucceeded) {
+        runFallback('AI code threw an error');
+      } else if (frameQueue.length === 0) {
+        // No animation requested: judge the synchronous drawing right away.
+        if (isCanvasBlank()) runFallback('AI code left the canvas blank');
+        else phase = 'running';
+      } else if (!nativeRaf) {
+        phase = 'running'; // can't probe without rAF; keep whatever ran
+      } else {
+        schedule(); // animate, then probe the pixels after a few frames
+      }
+    })();
+    
+
+    // Accession caption: derive the display date from this file's timestamp.
+    try {
+      const m = /([0-9]{8})-([0-9]{6})-([^/]+)[.]html$/.exec(location.pathname);
+      if (m) {
+        const d = new Date(+m[1].slice(0, 4), +m[1].slice(4, 6) - 1, +m[1].slice(6, 8));
+        const el = document.getElementById('artAccession');
+        if (el) el.textContent = 'Autonomous Art · ' + d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).toUpperCase();
+      }
+    } catch (e) {}
+  </script>
+</body>
+</html>

@@ -7,7 +7,15 @@
       "generated": "hf-gguf",
       "model": "mradermacher/Kartik-Qwen-3B-Instruct-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Fractal Reverie",
+      "date": "2026-09-06T07:18:03.365Z",
+      "technique": "Neural Wave Harmonics",
+      "generated": "hf-gguf",
+      "model": "M1n1A1/MiniAI-Quata1.5-Reasoning-4b",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-09-05T07:06:28.543Z"
+  "lastUpdated": "2026-09-06T07:18:03.365Z"
 }
