@@ -15,7 +15,15 @@
       "generated": "hf-gguf",
       "model": "M1n1A1/MiniAI-Quata1.5-Reasoning-4b",
       "hasCustomCode": true
+    },
+    {
+      "title": "Quantum Flow Field",
+      "date": "2026-09-07T07:32:56.224Z",
+      "technique": "Quantum Flow Field",
+      "generated": "hf-gguf",
+      "model": "mradermacher/Qwen2.5-Coder-3B-Uncensored-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-09-06T07:18:03.365Z"
+  "lastUpdated": "2026-09-07T07:32:56.228Z"
 }
