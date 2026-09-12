@@ -55,7 +55,15 @@
       "generated": "hf-gguf",
       "model": "sizzlebop/CodeThink-V4-Qwen3-4B-Mix-GGUF",
       "hasCustomCode": false
+    },
+    {
+      "title": "Fractal Flux Dance",
+      "date": "2026-09-12T07:20:52.520Z",
+      "technique": "Fractal Flame Dynamics",
+      "generated": "hf-gguf",
+      "model": "mradermacher/Llama-3.2-3B-TechWriter-Instruct-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-09-11T07:33:05.801Z"
+  "lastUpdated": "2026-09-12T07:20:52.521Z"
 }
