@@ -79,7 +79,15 @@
       "generated": "hf-gguf",
       "model": "DMP96/Apertus-v1.1-4B-Instruct-QAD-Q4_1-GGUF",
       "hasCustomCode": false
+    },
+    {
+      "title": "Hyperbolic Phyllotaxis Bloom",
+      "date": "2026-09-15T08:03:17.001Z",
+      "technique": "Hyperbolic Phyllotaxis Bloom",
+      "generated": "hf-gguf",
+      "model": "Nixon/Phi-4-mini-instruct-WearableQA-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-09-14T08:07:22.762Z"
+  "lastUpdated": "2026-09-15T08:03:17.005Z"
 }
