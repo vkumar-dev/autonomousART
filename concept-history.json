@@ -87,7 +87,15 @@
       "generated": "hf-gguf",
       "model": "Nixon/Phi-4-mini-instruct-WearableQA-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Phyllotaxis Mirage",
+      "date": "2026-09-16T07:53:44.829Z",
+      "technique": "Phyllotaxis Labyrinth",
+      "generated": "hf-gguf",
+      "model": "papineau1837/Phi-3-mini-4k-instruct-q4.gguf",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-09-15T08:03:17.005Z"
+  "lastUpdated": "2026-09-16T07:53:44.829Z"
 }
