@@ -103,7 +103,15 @@
       "generated": "hf-gguf",
       "model": "aratadev/Llama-3.2-3B-Instruct-uncensored-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Fractal Nexus Bloom",
+      "date": "2026-09-18T07:36:53.883Z",
+      "technique": "Quantum Flow Field",
+      "generated": "hf-gguf",
+      "model": "declarediowa617/gguf-Llama-3.2-3B-Instruct",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-09-17T07:58:05.261Z"
+  "lastUpdated": "2026-09-18T07:36:53.883Z"
 }
