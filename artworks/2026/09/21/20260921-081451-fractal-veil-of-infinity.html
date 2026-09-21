@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fractal Veil of Infinity - autonomousART</title>
+  <style>
+    :root {
+      --paper: #f2eee6;
+      --ink: #1b1814;
+      --ink-soft: #56504a;
+      --ink-faint: #938c81;
+      --line: rgba(27, 24, 20, 0.14);
+      --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+      --sans: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 44px 26px 90px;
+    }
+    .page { width: 100%; max-width: 780px; }
+    .work { width: 100%; }
+    .plate {
+      position: relative;
+      width: 100%;
+      background: #0f0f0d;
+      line-height: 0;
+      box-shadow: 0 1px 2px rgba(27,24,20,0.04), 0 40px 90px -48px rgba(27,24,20,0.5);
+    }
+    canvas { width: 100%; height: auto; display: block; }
+    .caption { padding-top: 26px; }
+    .kicker {
+      font-size: 10px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(25px, 5vw, 36px);
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      margin-bottom: 16px;
+    }
+    .desc {
+      font-family: var(--serif);
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--ink-soft);
+      max-width: 62ch;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 26px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+    .palette { display: inline-flex; gap: 7px; align-items: center; }
+    .palette i {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      border: 1px solid rgba(27,24,20,0.16);
+    }
+    .back {
+      display: inline-block;
+      margin-top: 40px;
+      font-size: 10.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--ink);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 4px;
+      transition: border-color 0.4s ease;
+    }
+    .back:hover { border-color: var(--ink); }
+
+    /* #stage: frame-only mode used when the piece is embedded (thumbnails, viewing room) */
+    html.stage body { padding: 0; display: block; }
+    html.stage .page {
+      width: 100%;
+      max-width: none;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    html.stage .work { width: min(100vw, 100vh); }
+    html.stage .plate { width: 100%; box-shadow: none; }
+    html.stage .caption,
+    html.stage .back { display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+  <script>
+    if (location.hash === '#stage') document.documentElement.classList.add('stage');
+  </script>
+</head>
+<body>
+  <div class="page">
+    <figure class="work">
+      <div class="plate">
+        <canvas id="artCanvas" width="1024" height="1024"></canvas>
+      </div>
+      <figcaption class="caption">
+        <p class="kicker" id="artAccession">Autonomous Art &middot; Generative</p>
+        <h1>Fractal Veil of Infinity</h1>
+        <p class="desc">A kaleidoscopic fractal veil emerges from a hyperbolic lattice, with its patterns morphing and cascading through fractal reflections and quantum wave interference. Every iteration reveals self-similar, fractal branches that twist and branch, forming a shimmering, ever-evolving pattern. The movement</p>
+        <div class="meta-row">
+          <span>Neural Wave Harmonics</span>
+          <span>Animated</span>
+          <span class="palette"><i style="background:#8623B3"></i><i style="background:#307D7A"></i><i style="background:#3082D4"></i><i style="background:#FFB347"></i><i style="background:#75574F"></i></span>
+        </div>
+      </figcaption>
+    </figure>
+    <a class="back" href="../../../../index.html">&larr; Return to collection</a>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('artCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const colors = ["#8623B3","#307D7A","#3082D4","#FFB347","#75574F"];
+    const technique = 'neural wave harmonics';
+
+    // Allow AI models querying document.getElementById('canvas') or 'artCanvas' to succeed
+    const _origGetElementById = document.getElementById.bind(document);
+    document.getElementById = function(id) {
+      if (id === 'canvas' || id === 'artCanvas') return canvas;
+      return _origGetElementById(id);
+    };
+
+    function random(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function randomChoice(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    
+    // --- AI-GENERATED CANVAS CODE (watchdog-guarded) ---
+    (function() {
+      // The AI writes arbitrary code, so before trusting its output we probe the
+      // real canvas pixels. If the code throws OR leaves the canvas effectively
+      // blank after a few animation frames, we stop its loop and run the proven
+      // procedural engine instead. This prevents silently-deployed black pages.
+      const nativeRaf = (typeof window !== 'undefined' && window.requestAnimationFrame)
+        ? window.requestAnimationFrame.bind(window)
+        : null;
+
+      const frameQueue = [];
+      let scheduled = false;
+      let phase = 'probing';   // 'probing' -> 'running' (AI kept) | 'fallback'
+      let probeFrames = 0;
+      let frameTime = 0;
+      const PROBE_FRAMES = 12;
+
+      function schedule() {
+        if (scheduled || !nativeRaf) return;
+        scheduled = true;
+        nativeRaf(flush);
+      }
+
+      // Intercept rAF so we can count frames for the probe and, when needed,
+      // fully stop the AI animation before the fallback engine starts.
+      window.requestAnimationFrame = function(cb) {
+        frameQueue.push(cb);
+        schedule();
+        return 0;
+      };
+      window.cancelAnimationFrame = function() {};
+
+      function flush() {
+        scheduled = false;
+        frameTime += 16;
+        const cbs = frameQueue.splice(0, frameQueue.length);
+        for (let i = 0; i < cbs.length; i++) {
+          try { cbs[i](frameTime); } catch (e) { console.error('Animation frame error:', e); }
+        }
+        if (phase === 'probing') {
+          probeFrames++;
+          if (probeFrames >= PROBE_FRAMES) decide();
+        }
+        if (phase === 'probing') {
+          if (!scheduled) schedule();
+        } else if ((phase === 'running' || phase === 'fallback') && frameQueue.length > 0 && !scheduled) {
+          schedule();
+        }
+      }
+
+      function isCanvasBlank() {
+        try {
+          const img = ctx.getImageData(0, 0, width, height);
+          const d = img.data;
+          const step = 32;
+          for (let y = 0; y < height; y += step) {
+            for (let x = 0; x < width; x += step) {
+              const i = (y * width + x) * 4;
+              // Visible = any non-transparent pixel that is not near-black.
+              if (d[i + 3] > 0 && (d[i] + d[i + 1] + d[i + 2]) > 30) return false;
+            }
+          }
+          return true;
+        } catch (e) {
+          return false; // pixels unreadable (rare); assume the code drew something
+        }
+      }
+
+      function runFallback(reason) {
+        console.log('Falling back to procedural engine (' + reason + ')...');
+        phase = 'fallback';
+        frameQueue.length = 0; // halt the AI animation loop
+        ctx.clearRect(0, 0, width, height);
+        // Own scope: declarations can never collide with the AI code's names
+        // (a collision would be a parse-time SyntaxError no try/catch can catch).
+        (function() {
+          
+    const nodes = [];
+    const numNodes = 40;
+    let t = 0;
+
+    class CrystalNode {
+      constructor() {
+        this.x = random(50, width - 50);
+        this.y = random(50, height - 50);
+        this.vx = random(-1, 1);
+        this.vy = random(-1, 1);
+        this.color = randomChoice(colors);
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 50 || this.x > width - 50) this.vx *= -1;
+        if (this.y < 50 || this.y > height - 50) this.vy *= -1;
+      }
+    }
+
+    function init() {
+      for (let i = 0; i < numNodes; i++) nodes.push(new CrystalNode());
+      animate();
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(6, 6, 10, 0.1)';
+      ctx.fillRect(0, 0, width, height);
+
+      nodes.forEach(n => n.update());
+
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 180) {
+            ctx.strokeStyle = nodes[i].color;
+            ctx.globalAlpha = 1 - (dist / 180);
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      ctx.globalAlpha = 1;
+      nodes.forEach(n => {
+        ctx.fillStyle = n.color;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      t += 0.01;
+      requestAnimationFrame(animate);
+    }
+    
+          if (typeof init === 'function') {
+            init();
+          }
+        })();
+        if (frameQueue.length > 0 && !scheduled) schedule();
+      }
+
+      function decide() {
+        if (isCanvasBlank()) {
+          runFallback('AI code left the canvas blank');
+        } else {
+          phase = 'running';
+        }
+      }
+
+      let customSucceeded = false;
+      try {
+        // Run the AI code in its own scope so its top-level declarations can
+        // never collide with the watchdog's own identifiers.
+        (function() {
+          let canvas = document.getElementById("myCanvas");
+let ctx = canvas.getContext("2d");
+canvas.width = 1024;
+canvas.height = 1024;
+
+const colors = ['#8623B3','#307D7A','#3082D4','#FFB347','#75574F'];
+const colorSet = [];
+colors.forEach(c => {
+  colorSet.push({r: c[0], g: c[1], b: c[2]});
+});
+let wave = [];
+let iterations = 24;
+let phase = 0;
+let lattice = [];
+let freq = 0.01;
+
+function random(min,max){
+  return Math.floor(Math.random()*(max-min))+min;
+}
+function randomChoice(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function generateLattice(w, h){
+  // Generate hyperbolic lattice with periodic boundary
+  lattice = [];
+  for(let y = 0; y < h; y++){
+    let row = [];
+    for(let x = 0; x < w; x++){
+      row.push([
+        random(0, w),
+        random(0, h),
+        random(0, 1),
+        random(0, 1)
+      ]);
+    }
+    lattice.push(row);
+  }
+}
+
+function processLattice(){
+  let newLattice = [];
+  for(let y = 0; y < lattice.length; y++){
+    let row = [];
+    for(let x = 0; x < lattice[y].length; x++){
+      // Apply periodic boundary conditions
+      let tx = lattice[y][(x+1)%lattice[y].length][0];
+      let ty = lattice[y][(x)%lattice[y].length][1];
+      let tdir = newLattice[y][x][2] * 0.7 + random(-0.25,0.25);
+      let tdir2 = newLattice[y][x][3] * 0.7 + random(-0.25,0.25);
+      row.push([tx, ty, tdir, tdir2]);
+    }
+    newLattice.push(row);
+  }
+  lattice = newLattice;
+}
+
+function drawLattice(){
+  ctx.save();
+  ctx.strokeStyle="#3082D4";
+  ctx.lineWidth=2;
+  for(let y=0;y<lattice.length;y++) for(let x=0;x<lattice[y].length;x++){
+    let [x1,y1,tx,ty] = lattice[y][x];
+    let [x2,y2,tx2,ty2] = lattice[y][(x+1)%lattice[y].length][x];
+    ctx.beginPath();
+    ctx.moveTo(x1*128,y1*128);
+    ctx.lineTo(x2*128,y2*128);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x1*128,y1*128,12,0,2*Math.PI);
+    ctx.arc(x2*128,y2*128,12,0,2*Math.PI);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFractal(){
+  ctx.save();
+  ctx.strokeStyle="#FFB347";
+  ctx.lineWidth=1.5;
+  let centerX = canvas.width/2;
+  let centerY = canvas.height/2;
+  let radius = 300;
+  for(let iter=0; iter<iterations; iter++){
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    for(let i=0;i<360+iter*2;i++){
+      let angle = i * Math.PI/180;
+      let x = centerX + Math.cos(angle)*radius;
+      let y = centerY + Math.sin(angle)*radius;
+      ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    radius *= 0.97;
+  }
+  ctx.restore();
+}
+
+function drawKaleidoscopic(){
+  ctx.save();
+  // Draw kaleidoscopic reflections
+  let center = [canvas.width/2, canvas.height/2];
+  let mirrorCount = 5;
+  let reflectAngle = 72;
+  for(let i=0;i<mirrorCount*2;i++){
+    let angle = reflectAngle*i*Math.PI/180;
+    let centerX = center[0]*Math.cos(angle) - center[1]*Math.sin(angle) + center[0];
+    let centerY = center[0]*Math.sin(angle) + center[1]*Math.cos(angle) + center[1];
+    drawFractal();
+    ctx.globalAlpha = 0.7;
+    drawFractal();
+    ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+}
+
+function drawWave(){
+  ctx.save();
+  let waves = [];
+  for(let i=0;i<wave.length;i++) waves.push([0,0,0]);
+  let dt = 1/60;
+  for(let i=0;i<wave.length;i++){
+    let [x,y] = wave[i];
+    let nx = x + Math.sin(phase+i*0.5)*5 + Math.cos(phase*dt)*5;
+    let ny = y + Math.cos(phase+i*0.5)*5 + Math.sin(phase*dt)*5;
+    wave[i] = [nx,ny];
+  }
+  ctx.globalAlpha=1;
+  ctx.beginPath();
+  ctx.moveTo(wave[0][0]*128, wave[0][1]*128);
+  for(let i=1;i<wave.length;i++){
+    ctx.lineTo(wave[i][0]*128, wave[i][1]*128);
+  }
+  ctx.lineWidth=3;
+  ctx.strokeStyle="#3082D4";
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawColoredGrid(){
+  ctx.save();
+  ctx.fillStyle="#75574F";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.restore();
+}
+
+function draw(){
+  drawColoredGrid();
+  drawLattice();
+  drawFractal();
+  drawKaleidoscopic();
+  drawWave();
+  ctx.globalAlpha = 0.7;
+  ctx.strokeStyle = "#8623B3";
+  ctx.lineWidth = 2.5;
+  for(let i=0;i<wave.length;i++){
+    ctx.beginPath();
+    ctx.moveTo(wave[i][0]*128, wave[i][1]*128);
+    ctx.lineTo(0,0);
+    ctx.stroke();
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  draw();
+  requestAnimationFrame(animate);
+}
+
+generateLattice(canvas.width, canvas.height);
+
+animate();
+          if (typeof init === 'function') {
+            init();
+          }
+        })();
+        customSucceeded = true;
+      } catch (err) {
+        console.error('Custom AI art execution error:', err);
+      }
+
+      if (!customSucceeded) {
+        runFallback('AI code threw an error');
+      } else if (frameQueue.length === 0) {
+        // No animation requested: judge the synchronous drawing right away.
+        if (isCanvasBlank()) runFallback('AI code left the canvas blank');
+        else phase = 'running';
+      } else if (!nativeRaf) {
+        phase = 'running'; // can't probe without rAF; keep whatever ran
+      } else {
+        schedule(); // animate, then probe the pixels after a few frames
+      }
+    })();
+    
+
+    // Accession caption: derive the display date from this file's timestamp.
+    try {
+      const m = /([0-9]{8})-([0-9]{6})-([^/]+)[.]html$/.exec(location.pathname);
+      if (m) {
+        const d = new Date(+m[1].slice(0, 4), +m[1].slice(4, 6) - 1, +m[1].slice(6, 8));
+        const el = document.getElementById('artAccession');
+        if (el) el.textContent = 'Autonomous Art · ' + d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).toUpperCase();
+      }
+    } catch (e) {}
+  </script>
+</body>
+</html>
