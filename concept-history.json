@@ -135,7 +135,15 @@
       "generated": "hf-gguf",
       "model": "mradermacher/AfriqueQwen3.5-4B-Instruct-v2-i1-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Hyperbolic Lattice Reflections",
+      "date": "2026-09-22T08:00:43.316Z",
+      "technique": "Hyperbolic Lattice Reflections",
+      "generated": "hf-gguf",
+      "model": "happyzzx/Qwen2.5-3B-Instruct-abliterated.Q4_K_M.gguf",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-09-21T08:14:51.085Z"
+  "lastUpdated": "2026-09-22T08:00:43.316Z"
 }
