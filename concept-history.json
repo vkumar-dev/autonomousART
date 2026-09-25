@@ -159,7 +159,15 @@
       "generated": "hf-gguf",
       "model": "ReyCharly/Qwen2.5-3B-Instruct-Sensei-Kaizen",
       "hasCustomCode": true
+    },
+    {
+      "title": "Echoes of the Spiral Throne",
+      "date": "2026-09-25T08:09:47.442Z",
+      "technique": "Phyllotaxis Spiral Matrix",
+      "generated": "hf-gguf",
+      "model": "mradermacher/Qwen3-VL-4B-Instruct-heretic-Semantic-Same-i1-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-09-24T07:47:50.855Z"
+  "lastUpdated": "2026-09-25T08:09:47.442Z"
 }
