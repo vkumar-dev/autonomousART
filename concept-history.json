@@ -199,7 +199,15 @@
       "generated": "hf-gguf",
       "model": "pockettravel/qwen3-4b-instruct-2507-travel-it-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Hyperbolic Harmony",
+      "date": "2026-09-30T08:56:23.205Z",
+      "technique": "Hyperbolic Glitch Lattice",
+      "generated": "hf-gguf",
+      "model": "purdue-ie336/qwen2.5-3b-instruct-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-09-29T08:56:52.466Z"
+  "lastUpdated": "2026-09-30T08:56:23.205Z"
 }
