@@ -215,7 +215,15 @@
       "generated": "hf-gguf",
       "model": "miesdevries/stay4s-coder-agent",
       "hasCustomCode": true
+    },
+    {
+      "title": "Resonant Hyperbolic Lattice",
+      "date": "2026-10-02T08:59:07.115Z",
+      "technique": "Hyperbolic Geometry / Golden Ratio / Interference",
+      "generated": "hf-gguf",
+      "model": "ggml-org/lev-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-10-01T09:22:08.689Z"
+  "lastUpdated": "2026-10-02T08:59:07.119Z"
 }
