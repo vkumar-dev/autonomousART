@@ -223,7 +223,15 @@
       "generated": "hf-gguf",
       "model": "ggml-org/lev-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Hyperbolic Lattices",
+      "date": "2026-10-03T08:30:15.421Z",
+      "technique": "Fractal Flame Dynamics",
+      "generated": "hf-gguf",
+      "model": "mradermacher/Qwen2.5-Coder-3B-Roblox-v4-GGUF",
+      "hasCustomCode": false
     }
   ],
-  "lastUpdated": "2026-10-02T08:59:07.119Z"
+  "lastUpdated": "2026-10-03T08:30:15.425Z"
 }
