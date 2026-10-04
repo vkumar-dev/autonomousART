@@ -231,7 +231,15 @@
       "generated": "hf-gguf",
       "model": "mradermacher/Qwen2.5-Coder-3B-Roblox-v4-GGUF",
       "hasCustomCode": false
+    },
+    {
+      "title": "Surreal Vision",
+      "date": "2026-10-04T08:42:11.869Z",
+      "technique": "Cellular Automata Topography",
+      "generated": "hf-gguf",
+      "model": "ReyCharly/Llama-3.2-3B-Instruct-Sensei-Kaizen",
+      "hasCustomCode": false
     }
   ],
-  "lastUpdated": "2026-10-03T08:30:15.425Z"
+  "lastUpdated": "2026-10-04T08:42:11.869Z"
 }
