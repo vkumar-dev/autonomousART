@@ -263,7 +263,15 @@
       "generated": "hf-gguf",
       "model": "gabriel20vieira/llama3.2-3b-mikrotik-reasoning",
       "hasCustomCode": false
+    },
+    {
+      "title": "Spiral Echoes of Time",
+      "date": "2026-10-08T09:24:09.047Z",
+      "technique": "Phyllotaxis Spiral Matrix",
+      "generated": "hf-gguf",
+      "model": "ReubenNewman/Qwen3-4B-2507-Instruct-Uncensored-HauhauCS-Aggressive-Safetensor-Benchmark-Q8_0-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-10-07T09:09:23.368Z"
+  "lastUpdated": "2026-10-08T09:24:09.047Z"
 }
