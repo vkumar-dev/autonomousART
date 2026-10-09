@@ -271,7 +271,15 @@
       "generated": "hf-gguf",
       "model": "ReubenNewman/Qwen3-4B-2507-Instruct-Uncensored-HauhauCS-Aggressive-Safetensor-Benchmark-Q8_0-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Surreal Vision",
+      "date": "2026-10-09T09:35:07.739Z",
+      "technique": "Cybernetic Glitch Lattice",
+      "generated": "hf-gguf",
+      "model": "jkim96/Ministral-3-3B-Reasoning-2512-DASHQ-Q2-GGUF",
+      "hasCustomCode": false
     }
   ],
-  "lastUpdated": "2026-10-08T09:24:09.047Z"
+  "lastUpdated": "2026-10-09T09:35:07.739Z"
 }
