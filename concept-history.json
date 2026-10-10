@@ -279,7 +279,15 @@
       "generated": "hf-gguf",
       "model": "jkim96/Ministral-3-3B-Reasoning-2512-DASHQ-Q2-GGUF",
       "hasCustomCode": false
+    },
+    {
+      "title": "Quantum Spiral Fractal",
+      "date": "2026-10-10T08:52:48.426Z",
+      "technique": "Reaction-Diffusion System with Quantum Attractor",
+      "generated": "hf-gguf",
+      "model": "mradermacher/qwen-coder-3b-agentic-v3-merged-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-10-09T09:35:07.739Z"
+  "lastUpdated": "2026-10-10T08:52:48.426Z"
 }
