@@ -303,7 +303,15 @@
       "generated": "hf-gguf",
       "model": "Feerb/gatekeeper-gguf",
       "hasCustomCode": true
+    },
+    {
+      "title": "The Fractal Garden",
+      "date": "2026-10-13T09:43:09.198Z",
+      "technique": "Cellular Automata Topography",
+      "generated": "hf-gguf",
+      "model": "pockettravel/qwen3-4b-instruct-2507-travel-en-GGUF",
+      "hasCustomCode": false
     }
   ],
-  "lastUpdated": "2026-10-12T09:41:22.492Z"
+  "lastUpdated": "2026-10-13T09:43:09.202Z"
 }
