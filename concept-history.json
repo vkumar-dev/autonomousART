@@ -311,7 +311,15 @@
       "generated": "hf-gguf",
       "model": "pockettravel/qwen3-4b-instruct-2507-travel-en-GGUF",
       "hasCustomCode": false
+    },
+    {
+      "title": "Fractal Radiance",
+      "date": "2026-10-14T07:58:29.000Z",
+      "technique": "Fractal Flame",
+      "generated": "hf-gguf",
+      "model": "Roquier/llm-coder-v1",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-10-13T09:43:09.202Z"
+  "lastUpdated": "2026-10-14T07:58:29.000Z"
 }
