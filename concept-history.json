@@ -343,7 +343,15 @@
       "generated": "hf-gguf",
       "model": "divakar7c5/wealthwand-qwen3-4b-instruct-2507-gguf",
       "hasCustomCode": true
+    },
+    {
+      "title": "Fractal Lullaby of Infinity",
+      "date": "2026-10-18T07:26:43.721Z",
+      "technique": "Hyperbolic Lattice with Phyllotaxis Spiral Modulation",
+      "generated": "hf-gguf",
+      "model": "mradermacher/Qwen3-4B-Instruct-2507-abliterated-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-10-17T07:11:59.298Z"
+  "lastUpdated": "2026-10-18T07:26:43.726Z"
 }
