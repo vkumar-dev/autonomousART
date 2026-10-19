@@ -351,7 +351,15 @@
       "generated": "hf-gguf",
       "model": "mradermacher/Qwen3-4B-Instruct-2507-abliterated-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Spiral Matrix",
+      "date": "2026-10-19T08:04:48.850Z",
+      "technique": "Phyllotaxis Spiral Matrix",
+      "generated": "hf-gguf",
+      "model": "hecan3d/QwenDGAF-Coder-3B",
+      "hasCustomCode": false
     }
   ],
-  "lastUpdated": "2026-10-18T07:26:43.726Z"
+  "lastUpdated": "2026-10-19T08:04:48.854Z"
 }
