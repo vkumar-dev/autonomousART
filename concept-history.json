@@ -359,7 +359,15 @@
       "generated": "hf-gguf",
       "model": "hecan3d/QwenDGAF-Coder-3B",
       "hasCustomCode": false
+    },
+    {
+      "title": "Surreal Vision",
+      "date": "2026-10-20T07:55:54.531Z",
+      "technique": "Reaction-Diffusion Labyrinth",
+      "generated": "hf-gguf",
+      "model": "henil08/verilog-coder-3b-gguf",
+      "hasCustomCode": false
     }
   ],
-  "lastUpdated": "2026-10-19T08:04:48.854Z"
+  "lastUpdated": "2026-10-20T07:55:54.535Z"
 }
