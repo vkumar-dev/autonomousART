@@ -375,7 +375,15 @@
       "generated": "hf-gguf",
       "model": "nile-academy/ministral-3-3b-reasoning-2512-gguf",
       "hasCustomCode": true
+    },
+    {
+      "title": "Surreal Vision",
+      "date": "2026-10-22T07:57:31.721Z",
+      "technique": "Cellular Automata Topography",
+      "generated": "hf-gguf",
+      "model": "mradermacher/mistralai_Ministral-3-3B-Instruct-2512-BF16-abliterated-GGUF",
+      "hasCustomCode": false
     }
   ],
-  "lastUpdated": "2026-10-21T07:58:27.128Z"
+  "lastUpdated": "2026-10-22T07:57:31.721Z"
 }
