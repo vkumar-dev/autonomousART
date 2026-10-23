@@ -383,7 +383,15 @@
       "generated": "hf-gguf",
       "model": "mradermacher/mistralai_Ministral-3-3B-Instruct-2512-BF16-abliterated-GGUF",
       "hasCustomCode": false
+    },
+    {
+      "title": "Hyperbolic Harmony",
+      "date": "2026-10-23T07:53:33.055Z",
+      "technique": "Cybernetic Glitch Lattice",
+      "generated": "hf-gguf",
+      "model": "Alexs28/Qwen2.5-3B-Instruct-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-10-22T07:57:31.721Z"
+  "lastUpdated": "2026-10-23T07:53:33.055Z"
 }
