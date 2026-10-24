@@ -391,7 +391,15 @@
       "generated": "hf-gguf",
       "model": "Alexs28/Qwen2.5-3B-Instruct-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Echoes of the Hyperbolic Seed",
+      "date": "2026-10-24T07:36:26.271Z",
+      "technique": "Fractal Flame Dynamics",
+      "generated": "hf-gguf",
+      "model": "mradermacher/Neuron-4B-Instruct-i1-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-10-23T07:53:33.055Z"
+  "lastUpdated": "2026-10-24T07:36:26.275Z"
 }
