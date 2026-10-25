@@ -399,7 +399,15 @@
       "generated": "hf-gguf",
       "model": "mradermacher/Neuron-4B-Instruct-i1-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Fractal Aurora Bloom",
+      "date": "2026-10-25T07:50:37.245Z",
+      "technique": "Complex Reaction-Diffusion Systems",
+      "generated": "hf-gguf",
+      "model": "EsteefAi/Llama-3.2-3B-Instruct-uncensored-GGUF-mirror",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-10-24T07:36:26.275Z"
+  "lastUpdated": "2026-10-25T07:50:37.249Z"
 }
