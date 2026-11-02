@@ -463,7 +463,15 @@
       "generated": "hf-gguf",
       "model": "REDSOULTM/BAXY-Qwen3.5-4B-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Fractal Luminosity",
+      "date": "2026-11-02T09:52:50.908Z",
+      "technique": "Clifford Strange Attractor",
+      "generated": "hf-gguf",
+      "model": "bartowski/K-Ai-Official_MiRAI-4B-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-11-01T09:38:55.663Z"
+  "lastUpdated": "2026-11-02T09:52:50.908Z"
 }
