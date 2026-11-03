@@ -471,7 +471,15 @@
       "generated": "hf-gguf",
       "model": "bartowski/K-Ai-Official_MiRAI-4B-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Neural Flora",
+      "date": "2026-11-03T10:02:52.900Z",
+      "technique": "Reaction-Diffusion & Hyperbolic Kaleidoscope",
+      "generated": "hf-gguf",
+      "model": "InterpreticAI/Qwen3.5-4B-Uncensored-v2-Browser-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-11-02T09:52:50.908Z"
+  "lastUpdated": "2026-11-03T10:02:52.900Z"
 }
