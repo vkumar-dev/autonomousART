@@ -479,7 +479,15 @@
       "generated": "hf-gguf",
       "model": "InterpreticAI/Qwen3.5-4B-Uncensored-v2-Browser-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Surreal Vision",
+      "date": "2026-11-04T09:47:20.378Z",
+      "technique": "Particle Singularity Vortex",
+      "generated": "hf-gguf",
+      "model": "bartowski/Lythri_Lythri-Tada-4B-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-11-03T10:02:52.900Z"
+  "lastUpdated": "2026-11-04T09:47:20.378Z"
 }
