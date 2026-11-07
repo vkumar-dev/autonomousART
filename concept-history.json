@@ -503,7 +503,15 @@
       "generated": "hf-gguf",
       "model": "ununununununununununununununununununun/qwen3-4b-instruct-2507-phi-lattice-v2",
       "hasCustomCode": true
+    },
+    {
+      "title": "Phyllotactic Fractal Bloom",
+      "date": "2026-11-07T09:08:59.167Z",
+      "technique": "Phyllotactic Spiral Growth with Phase-Shifted Branching",
+      "generated": "hf-gguf",
+      "model": "bartowski/p-e-w_Oc-e-Non-v1-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-11-06T09:48:18.023Z"
+  "lastUpdated": "2026-11-07T09:08:59.170Z"
 }
