@@ -535,7 +535,15 @@
       "generated": "hf-gguf",
       "model": "ginesew43/Phi-4-mini-instruct-Q8_0-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "KALEIDIC NEURAL GARDEN maybe 4 words.",
+      "date": "2026-11-11T09:53:50.650Z",
+      "technique": "Coupled Neural Field + Reaction-Diffusion Trails + Hyperboli",
+      "generated": "hf-gguf",
+      "model": "Aminadaven/Qwen3.5-4B-3D-Coder-Q4_0-NPU",
+      "hasCustomCode": false
     }
   ],
-  "lastUpdated": "2026-11-10T10:18:35.472Z"
+  "lastUpdated": "2026-11-11T09:53:50.654Z"
 }
