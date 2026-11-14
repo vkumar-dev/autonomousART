@@ -559,7 +559,15 @@
       "generated": "hf-gguf",
       "model": "mradermacher/Llama-3.2-3B-Instruct-math-fable-repaired-GGUF",
       "hasCustomCode": false
+    },
+    {
+      "title": "Surreal Vision",
+      "date": "2026-11-14T09:23:12.162Z",
+      "technique": "Neural Wave Harmonics",
+      "generated": "hf-gguf",
+      "model": "Duss69/Qwen3.5-4B-3D-Coder",
+      "hasCustomCode": false
     }
   ],
-  "lastUpdated": "2026-11-13T09:55:30.599Z"
+  "lastUpdated": "2026-11-14T09:23:12.162Z"
 }
