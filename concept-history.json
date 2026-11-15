@@ -567,7 +567,15 @@
       "generated": "hf-gguf",
       "model": "Duss69/Qwen3.5-4B-3D-Coder",
       "hasCustomCode": false
+    },
+    {
+      "title": "Echoes of the Hyperbolic Veil",
+      "date": "2026-11-15T09:54:55.596Z",
+      "technique": "Fractal Flame Dynamics",
+      "generated": "hf-gguf",
+      "model": "mradermacher/Orca-4B-Instruct-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-11-14T09:23:12.162Z"
+  "lastUpdated": "2026-11-15T09:54:55.596Z"
 }
