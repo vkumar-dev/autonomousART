@@ -591,7 +591,15 @@
       "generated": "hf-gguf",
       "model": "mradermacher/SmolLM3-3B-Instruct-heretic-i1-GGUF",
       "hasCustomCode": false
+    },
+    {
+      "title": "Spiral of Unity",
+      "date": "2026-11-18T10:41:26.830Z",
+      "technique": "Fractal Flame Dynamics",
+      "generated": "hf-gguf",
+      "model": "mradermacher/python-coder-3b-research-GGUF",
+      "hasCustomCode": false
     }
   ],
-  "lastUpdated": "2026-11-17T11:05:53.307Z"
+  "lastUpdated": "2026-11-18T10:41:26.833Z"
 }
