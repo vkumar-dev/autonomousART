@@ -599,7 +599,15 @@
       "generated": "hf-gguf",
       "model": "mradermacher/python-coder-3b-research-GGUF",
       "hasCustomCode": false
+    },
+    {
+      "title": "Radiant Radiance Matrix",
+      "date": "2026-11-19T10:44:34.197Z",
+      "technique": "Hyperbolic Lattice Radiance",
+      "generated": "hf-gguf",
+      "model": "mindsofchaos/codeoptics-coder-3b-v5",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-11-18T10:41:26.833Z"
+  "lastUpdated": "2026-11-19T10:44:34.197Z"
 }
