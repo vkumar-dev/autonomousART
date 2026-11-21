@@ -615,7 +615,15 @@
       "generated": "hf-gguf",
       "model": "mradermacher/Qwopus3.5-4B-Coder-UNCENSORED-heretic-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Phyllotactic Spiral",
+      "date": "2026-11-21T10:15:22.923Z",
+      "technique": "Phyllotaxis Spiral Lattice",
+      "generated": "hf-gguf",
+      "model": "gaurav0506/rag-sft-qwen2.5-coder-3b",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-11-20T10:30:59.020Z"
+  "lastUpdated": "2026-11-21T10:15:22.923Z"
 }
