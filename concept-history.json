@@ -623,7 +623,15 @@
       "generated": "hf-gguf",
       "model": "gaurav0506/rag-sft-qwen2.5-coder-3b",
       "hasCustomCode": true
+    },
+    {
+      "title": "Surreal Vision",
+      "date": "2026-11-22T10:21:55.746Z",
+      "technique": "Clifford Strange Attractor",
+      "generated": "hf-gguf",
+      "model": "ccore/CCORE-Web-Coder-4B",
+      "hasCustomCode": false
     }
   ],
-  "lastUpdated": "2026-11-21T10:15:22.923Z"
+  "lastUpdated": "2026-11-22T10:21:55.748Z"
 }
