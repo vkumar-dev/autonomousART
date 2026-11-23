@@ -631,7 +631,15 @@
       "generated": "hf-gguf",
       "model": "ccore/CCORE-Web-Coder-4B",
       "hasCustomCode": false
+    },
+    {
+      "title": "Neural Wave Labyrinth",
+      "date": "2026-11-23T11:11:42.303Z",
+      "technique": "Neural Network",
+      "generated": "hf-gguf",
+      "model": "mradermacher/GameDojo-4B-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-11-22T10:21:55.748Z"
+  "lastUpdated": "2026-11-23T11:11:42.303Z"
 }
