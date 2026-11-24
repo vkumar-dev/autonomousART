@@ -639,7 +639,15 @@
       "generated": "hf-gguf",
       "model": "mradermacher/GameDojo-4B-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "...",
+      "date": "2026-11-24T12:57:50.698Z",
+      "technique": "Cybernetic Glitch Lattice",
+      "generated": "hf-gguf",
+      "model": "mradermacher/CCORE-Web-Coder-4B-GGUF",
+      "hasCustomCode": true
     }
   ],
-  "lastUpdated": "2026-11-23T11:11:42.303Z"
+  "lastUpdated": "2026-11-24T12:57:50.698Z"
 }
