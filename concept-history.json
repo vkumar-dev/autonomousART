@@ -655,7 +655,15 @@
       "generated": "hf-gguf",
       "model": "generalproducts/em-personal-qwen3.5-4b-5000-GGUF",
       "hasCustomCode": true
+    },
+    {
+      "title": "Surreal Vision",
+      "date": "2026-11-26T11:24:27.445Z",
+      "technique": "Phyllotaxis Spiral Matrix",
+      "generated": "hf-gguf",
+      "model": "kingjones777/Qwen3.5-4B-Post-Reasoning-SuperRoc-GGUF",
+      "hasCustomCode": false
     }
   ],
-  "lastUpdated": "2026-11-25T11:44:23.777Z"
+  "lastUpdated": "2026-11-26T11:24:27.449Z"
 }
